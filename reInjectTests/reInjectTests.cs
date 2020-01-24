@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using ReInject;
+using ReInject.Implementation.DependencyTypes;
 using Xunit;
 
 namespace ReInjectTests
@@ -10,7 +11,7 @@ namespace ReInjectTests
   public class ReInjectIntegrationTests
   {
     [Fact]
-    public void AeoInject_CreatesIntance_IfTypesAreGiven()
+    public void ReInject_CreatesIntance_IfTypesAreGiven()
     {
       var container = Injector.GetContainer();
       container.Register<IHelloService, HelloService>().Register<GoodByeService>(DependencyStrategy.NewInstance);
@@ -19,6 +20,27 @@ namespace ReInjectTests
 
       Assert.Equal("Hello World\nI am Greeter\nGood Bye", msg);
     }
+
+
+    [Fact]
+    public void NewInstance_AlwayReturnsOtherInstance_OnGetInstance()
+    {
+      // Setup
+      var container = Injector.GetContainer();
+      var dep = new NewInstanceDependency(container, typeof(HelloService), typeof(IHelloService));
+
+      // Act
+      var inst1 = dep.Instance;
+      var inst2 = dep.Instance;
+
+      // Assert
+     Assert.NotEqual(inst1, inst2);
+    }
+  }
+
+  class ReferenceHolder
+  {
+    public object Reference { get; set; }
   }
 
   interface IHelloService

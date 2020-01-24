@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using ReInject.Interfaces;
 
+[assembly: InternalsVisibleTo("reInjectTests")]
 namespace ReInject.Implementation.DependencyTypes
 {
   abstract class DependencyBase : IDependencyType
