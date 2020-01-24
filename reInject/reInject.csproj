@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>ReInject</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Aeolin Ferjünnoz</Authors>
+    <Company>reDevelop</Company>
+    <PackageId>Aeolin.reInject</PackageId>
+    <Description>A simple dependency injection framework</Description>
+    <Copyright>Aeolin Ferjünnoz</Copyright>
+    <PackageProjectUrl>https://github.com/re-develop/reInject</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/re-develop/reInject</RepositoryUrl>
+    <RepositoryType>github</RepositoryType>
+    <PackageTags>di dependency injection dependencyinjection</PackageTags>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+</Project>
