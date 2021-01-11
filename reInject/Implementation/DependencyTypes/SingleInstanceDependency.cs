@@ -8,7 +8,7 @@ namespace ReInject.Implementation.DependencyTypes
   class SingleInstanceDependency : DependencyBase
   {
     private object _instance;
-    public SingleInstanceDependency( IDependencyContainer container, Type type, Type interfaceType = null ) : base( container, DependencyStrategy.SingleInstance, type, interfaceType )
+    public SingleInstanceDependency(IDependencyContainer container, Type type, Type interfaceType = null, string name = null) : base(container, DependencyStrategy.SingleInstance, type, interfaceType, name)
     {
     }
 
@@ -16,7 +16,7 @@ namespace ReInject.Implementation.DependencyTypes
     {
       get
       {
-        if( _instance == null )
+        if (_instance == null)
           _instance = createInstance();
 
         return _instance;

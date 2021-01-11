@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using ReInject.Core;
 using ReInject.Interfaces;
 
 [assembly: InternalsVisibleTo("reInjectTests")]
@@ -10,14 +11,17 @@ namespace ReInject.Implementation.DependencyTypes
 {
   abstract class DependencyBase : IDependencyType
   {
-    public DependencyBase( IDependencyContainer container, DependencyStrategy strategy, Type type, Type interfaceType = null )
+    public DependencyBase( IDependencyContainer container, DependencyStrategy strategy, Type type, Type interfaceType = null, string name = null )
     {
       this.Strategy = strategy;
       this.Type = type;
       this.InterfaceType = interfaceType;
       this._container = container;
+      this.Name = name;
     }
 
+
+    public string Name { get; init; }
 
 
     private IDependencyContainer _container;
@@ -36,24 +40,7 @@ namespace ReInject.Implementation.DependencyTypes
 
     protected object createInstance()
     {
-      var type = Type;
-      var ctor = type.GetConstructors().Where( x => x.GetParameters().All( y => y.HasDefaultValue || _container.IsKnownType( y.ParameterType ) ) ).OrderByDescending( x => x.GetParameters().Count() ).FirstOrDefault();
-      if( ctor == null )
-        return null;
-
-      return ctor.Invoke( ctor.GetParameters().Select( x =>
-      {
-        if( _container.IsKnownType( x.ParameterType ) )
-        {
-          return _container.GetInstance( x.ParameterType );
-        }
-        else if( x.HasDefaultValue == true )
-        {
-          return x.RawDefaultValue;
-        }
-
-        throw new Exception( $"Couldn't resolve type for {x.ParameterType.Name} to call ctor of {type.Name}" );
-      } ).ToArray() );
+      return TypeInjectionMetadataCache.GetMetadataCache(Type).CreateInstance(_container);
     }
 
   }

@@ -9,7 +9,7 @@ namespace ReInject.Implementation.DependencyTypes
   {
     private WeakReference<object> _reference;
 
-    public CachedInstanceDependency( IDependencyContainer container, Type type, Type interfaceType = null ) : base( container, DependencyStrategy.CachedInstance, type, interfaceType )
+    public CachedInstanceDependency( IDependencyContainer container, Type type, Type interfaceType = null, string name = null ) : base( container, DependencyStrategy.CachedInstance, type, interfaceType, name )
     {
     }
 
