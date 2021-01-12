@@ -6,10 +6,13 @@ using System.Text;
 using ReInject.Core;
 using ReInject.Interfaces;
 
-[assembly: InternalsVisibleTo("reInjectTests")]
 namespace ReInject.Implementation.DependencyTypes
 {
-  abstract class DependencyBase : IDependencyType
+
+  /// <summary>
+  /// internal abstract base class to implement IDependecyType
+  /// </summary>
+  internal abstract class DependencyBase : IDependencyType
   {
     public DependencyBase( IDependencyContainer container, DependencyStrategy strategy, Type type, Type interfaceType = null, string name = null )
     {

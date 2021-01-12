@@ -5,7 +5,10 @@ using ReInject.Interfaces;
 
 namespace ReInject.Implementation.DependencyTypes
 {
-  class AtomicInstanceDependency : DependencyBase
+  /// <summary>
+  /// internal implementation of the atomic depedency strategy
+  /// </summary>
+  internal class AtomicInstanceDependency : DependencyBase
   {
     public AtomicInstanceDependency( IDependencyContainer container, object instance, Type type, Type interfaceType = null, string name = null ) : base( container, DependencyStrategy.AtomicInstance, type, interfaceType, name )
     {

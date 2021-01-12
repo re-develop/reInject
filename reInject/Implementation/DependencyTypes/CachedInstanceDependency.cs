@@ -5,7 +5,10 @@ using ReInject.Interfaces;
 
 namespace ReInject.Implementation.DependencyTypes
 {
-  class CachedInstanceDependency : DependencyBase
+  /// <summary>
+  /// internal implementation of the cached dependency strategy
+  /// </summary>
+  internal class CachedInstanceDependency : DependencyBase
   {
     private WeakReference<object> _reference;
 

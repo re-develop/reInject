@@ -10,21 +10,35 @@ using System.Text;
 
 namespace ReInject.Core
 {
+  /// <summary>
+  /// Class to cache metadata used by the depdendency container
+  /// </summary>
   public class TypeInjectionMetadataCache
   {
     private static Dictionary<Type, TypeInjectionMetadataCache> _cache = new Dictionary<Type, TypeInjectionMetadataCache>();
 
+    /// <summary>
+    /// Clear all cached types
+    /// </summary>
     public static void ClearCache()
     {
       _cache.Clear();
     }
 
+    /// <summary>
+    /// Recalculate all cached types
+    /// </summary>
     public static void UpdateCache()
     {
       foreach (var val in _cache.Values)
         val.CalculateInjectionMetadata();
     }
 
+    /// <summary>
+    /// Get Metadata for a given type
+    /// </summary>
+    /// <param name="type">The type to get metadata from</param>
+    /// <returns>Generated metadata</returns>
     public static TypeInjectionMetadataCache GetMetadataCache(Type type)
     {
       if (_cache.ContainsKey(type) == false)
@@ -33,19 +47,35 @@ namespace ReInject.Core
       return _cache[type];
     }
 
+    // keeps track of all injection relevant class members
     private Dictionary<MemberInfo, Type> _members = new Dictionary<MemberInfo, Type>();
+
+    // keeps track of all InjectAttributes 
     private Dictionary<ICustomAttributeProvider, InjectAttribute> _memberAttributes = new Dictionary<ICustomAttributeProvider, InjectAttribute>();
+
+    // keeps track of all setter functions for the given members
     private Dictionary<MemberInfo, Action<object, object>> _setters = new Dictionary<MemberInfo, Action<object, object>>();
+
+    // keeps track of all possible constructors
     private Dictionary<ConstructorInfo, ParameterInfo[]> _constructors = new Dictionary<ConstructorInfo, ParameterInfo[]>();
 
+    /// <summary>
+    /// Returns the type this metadata was generated for
+    /// </summary>
     public Type CachedType { get; init; }
 
+    // hidden ctor should only be called by the static method GetMetadataCache
     private TypeInjectionMetadataCache(Type type)
     {
       CachedType = type;
       CalculateInjectionMetadata();
     }
 
+    /// <summary>
+    /// Creates an instance of the type and injects depdendencies from the given container
+    /// </summary>
+    /// <param name="container">The dependency container</param>
+    /// <returns>An instance of CachedType with all dependencies injected contained in <paramref name="container"/></returns>
     public object CreateInstance(IDependencyContainer container)
     {
       var ctor = _constructors.Where(x => x.Value.All(y => y.HasDefaultValue || container.IsKnownType(y.ParameterType, _memberAttributes.GetValueOrDefault(y)?.Name))).OrderByDescending(x => x.Value.Count()).FirstOrDefault().Key;
@@ -79,6 +109,9 @@ namespace ReInject.Core
       return inst;
     }
 
+    /// <summary>
+    /// Recalculates the cached metadata, call this if you've changed members of CachedType at runtime
+    /// </summary>
     public void CalculateInjectionMetadata()
     {
       _members.Clear();
