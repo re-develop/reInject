@@ -119,7 +119,7 @@ namespace ReInject.Core
 
       var fields = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Field).Cast<FieldInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectAttribute>()));
       var props = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Property).Cast<PropertyInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectAttribute>()));
-      var ctors = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Constructor).Cast<ConstructorInfo>();
+      var ctors = CachedType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
       foreach (var field in fields.Where(x => x.attribute != null))
       {

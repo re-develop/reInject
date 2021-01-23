@@ -48,8 +48,10 @@ namespace ReInjectTests
       var inst1 = dep.Instance;
       var inst2 = dep.Instance;
 
+
+
       // Assert
-     Assert.NotEqual(inst1, inst2);
+      Assert.NotEqual(inst1, inst2);
     }
 
     [Fact]
