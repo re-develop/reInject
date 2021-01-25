@@ -59,6 +59,9 @@ namespace ReInject.Core
     // keeps track of all possible constructors
     private Dictionary<ConstructorInfo, ParameterInfo[]> _constructors = new Dictionary<ConstructorInfo, ParameterInfo[]>();
 
+    // keeps track of all bindable events
+    private Dictionary<MethodInfo, InjectEventAttribute> _bindableEvents = new Dictionary<MethodInfo, InjectEventAttribute>();
+
     /// <summary>
     /// Returns the type this metadata was generated for
     /// </summary>
@@ -82,7 +85,7 @@ namespace ReInject.Core
       object inst;
       if (ctor != null)
       {
-        inst = ctor.Invoke(ctor.GetParameters().Select(x =>
+        var parameters = ctor.GetParameters().Select(x =>
         {
           if (container.IsKnownType(x.ParameterType, _memberAttributes.GetValueOrDefault(x)?.Name))
           {
@@ -94,7 +97,8 @@ namespace ReInject.Core
           }
 
           throw new Exception($"Couldn't resolve type for {x.ParameterType.Name} to call ctor of {CachedType.Name}");
-        }).ToArray());
+        }).ToArray();
+        inst = ctor.Invoke(parameters);
       }
       else
       {
@@ -105,6 +109,14 @@ namespace ReInject.Core
       foreach (var member in _members)
         if (container.IsKnownType(member.Value, _memberAttributes.GetValueOrDefault(member.Key)?.Name))
           _setters[member.Key](inst, container.GetInstance(member.Value, _memberAttributes.GetValueOrDefault(member.Key)?.Name));
+
+      foreach(var @event in _bindableEvents)
+      {
+        if (container.RegisterEventTarget(@event.Value.EventName, inst, @event.Key) == false)
+        {
+          // TODO: log
+        }
+      }
 
       return inst;
     }
@@ -117,8 +129,9 @@ namespace ReInject.Core
       _members.Clear();
       _constructors.Clear();
 
-      var fields = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Field).Cast<FieldInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectAttribute>()));
-      var props = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Property).Cast<PropertyInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectAttribute>()));
+      var fields = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Field).Cast<FieldInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectAttribute>(true)));
+      var props = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Property).Cast<PropertyInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectAttribute>(true)));
+      var events = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Method).Cast<MethodInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectEventAttribute>(true)));
       var ctors = CachedType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
       foreach (var field in fields.Where(x => x.attribute != null))
@@ -132,7 +145,7 @@ namespace ReInject.Core
       {
         _members[prop.info] = prop.attribute.Type ?? prop.info.PropertyType;
         _memberAttributes[prop.info] = prop.attribute;
-        if(prop.info.CanWrite)
+        if (prop.info.CanWrite)
         {
           _setters[prop.info] = (obj, val) => prop.info.SetValue(obj, val);
         }
@@ -148,13 +161,17 @@ namespace ReInject.Core
       {
         var parameters = ctor.GetParameters();
         _constructors[ctor] = parameters;
-        foreach(var parameter in parameters)
+        foreach (var parameter in parameters)
         {
           var attribute = parameter.GetCustomAttribute<InjectAttribute>();
           if (attribute != null)
             _memberAttributes[parameter] = attribute;
         }
       }
+
+      foreach (var @event in events.Where(x => x.attribute != null))
+        _bindableEvents[@event.info] = @event.attribute;
+
     }
   }
 }

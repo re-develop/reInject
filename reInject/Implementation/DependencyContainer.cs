@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using ReInject.Core;
+using ReInject.Implementation.Core;
 using ReInject.Implementation.DependencyTypes;
 using ReInject.Interfaces;
 
@@ -29,6 +31,7 @@ namespace ReInject.Implementation
 
     // internal dictionary to keep track of registered dependencies
     private Dictionary<(Type, string), IDependencyType> _typeCache = new Dictionary<(Type, string), IDependencyType>();
+    private Dictionary<string, EventProxy> _eventProxies = new Dictionary<string, EventProxy>();
 
     /// <summary>
     /// Gets the name of the current dependency container
@@ -237,5 +240,65 @@ namespace ReInject.Implementation
       _typeCache.Values.ToList().ForEach(x => x.Clear());
     }
 
+    internal bool HasEventProxy(string name)
+    {
+      return _eventProxies.ContainsKey(name);
+    }
+
+    internal EventProxy GetEventProxy(string name)
+    {
+      return _eventProxies[name];
+    }
+
+    public void RegisterEventSource(object sender, string bindTo, string uniqueEventName, bool overwrite = false)
+    {
+      if(overwrite || _eventProxies.ContainsKey(uniqueEventName) == false)
+      {
+        UnregisterEventSource(uniqueEventName);
+        _eventProxies[uniqueEventName] = new EventProxy(sender, bindTo, uniqueEventName);
+      }
+    }
+
+    public void UnregisterEventSource(string uniqueEventName)
+    {
+      if(_eventProxies.TryGetValue(uniqueEventName, out var proxy))
+      {
+        _eventProxies.Remove(uniqueEventName);
+        proxy.Dispose();
+      }
+    }
+
+    public void UnregisterEventSources(object sender)
+    {
+      var proxies = _eventProxies.Where(x => x.Value.EventSource.Equals(sender)).ToList();
+      foreach (var proxy in proxies)
+      {
+        _eventProxies.Remove(proxy.Key);
+        proxy.Value.Dispose();
+      }
+    }
+
+    public void UnregisterEventSources<T>()
+    {
+      var proxies = _eventProxies.Where(x => x.Value.EventSource.GetType().Equals(typeof(T))).ToList();
+      foreach (var proxy in proxies)
+      {
+        _eventProxies.Remove(proxy.Key);
+        proxy.Value.Dispose();
+      }
+    }
+
+    public bool RegisterEventTarget(string uniqueEventName, object instance, MethodInfo info)
+    {
+      if (HasEventProxy(uniqueEventName))
+      {
+        var proxy = GetEventProxy(uniqueEventName);
+        var proxyTarget = new EventProxyTarget(instance, info);
+        proxy.AddTarget(proxyTarget);
+        return true;
+      }
+
+      return false;
+    }
   }
 }

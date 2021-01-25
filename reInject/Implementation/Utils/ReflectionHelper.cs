@@ -62,12 +62,10 @@ namespace ReInject.Utils
     {
       do
       {
-        var members = type.GetMember(name, flags);
+        var members = type.GetMember(name, flags).Where(x => typeof(T).IsAssignableFrom(x.GetType())).ToArray();
         if (members != null && members.Length == 1)
         {
-          var member = members[0];
-          if (typeof(T).IsAssignableFrom(member.GetType()))
-            return (T)member;
+            return (T)members[0];
         }
 
         type = type.BaseType;

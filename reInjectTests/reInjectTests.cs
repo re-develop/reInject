@@ -6,14 +6,106 @@ using System.Reflection;
 using System.Text;
 using ReInject;
 using ReInject.Implementation.Attributes;
+using ReInject.Implementation.Core;
 using ReInject.Implementation.DependencyTypes;
 using ReInject.Utils;
 using Xunit;
 
 namespace ReInjectTests
 {
+
+  abstract class TestAbsCtor
+  {
+    IHelloService _service;
+
+    public TestAbsCtor(IHelloService service)
+    {
+      _service = service;
+    }
+
+  }
+
+  class StupidCtor : TestAbsCtor
+  {
+    public StupidCtor(IHelloService service) : base(service)
+    {
+    }
+  }
+
+  public class EventSource
+  {
+    public delegate int TestDelegate(int num, string test, object obj1, object obj2, object obj3);
+    public event TestDelegate TestEvent;
+
+    public int CallEvent(int num)
+    {
+      return TestEvent?.Invoke(num, "lol", null, null, null) ?? -1;
+    }
+  }
+
+  public class EventTarget
+  {
+    public int LastEventValue { get; private set; }
+
+    [InjectEvent("test")]
+    public int HandleEvent(int num, string test, object obj1, object obj2, object obj3)
+    {
+      LastEventValue = num;
+      return num * 2;
+    }
+
+  }
+
+
   public class ReInjectIntegrationTests
   {
+
+    [Fact]
+    public void ReInject_TestEventInjection_EventCallbackWorks()
+    {
+      // Arrange
+      int num = 1337;
+      var source = new EventSource();
+      var target = new EventTarget();
+
+      var proxy = new EventProxy(source, nameof(source.TestEvent), "test");
+      var proxyTarget = new EventProxyTarget(target, ReflectionHelper.GetMember<MethodInfo>(target.GetType(), "HandleEvent"));
+      proxy.AddTarget(proxyTarget);
+
+      // Act
+      var res = source.CallEvent(num);
+
+      // Assert
+      Assert.Equal(num, target.LastEventValue);
+      Assert.Equal(num * 2, res);
+    }
+
+    [Fact]
+    public void ReInject_TestEventInjection_AttributeBasedInjectionWorks()
+    {
+      // Arrange
+      var container = Injector.GetContainer(Guid.NewGuid().ToString());
+      int num = 1337;
+      var source = new EventSource();
+      container.RegisterEventSource(source, "TestEvent", "test");
+
+      // Act
+      var target = container.GetInstance<EventTarget>();
+      var res = source.CallEvent(num);
+
+      // Assert
+      Assert.Equal(num, target.LastEventValue);
+      Assert.Equal(num * 2, res);
+    }
+
+    [Fact]
+    public void ReInject_HandelsAbstract()
+    {
+      var container = Injector.GetContainer(Guid.NewGuid().ToString());
+      container.Register<IHelloService>(DependencyStrategy.AtomicInstance, true, new HelloService());
+      container.GetInstance<StupidCtor>();
+    }
+
     [Fact]
     public void ReInject_CreatesIntance_IfTypesAreGiven()
     {
