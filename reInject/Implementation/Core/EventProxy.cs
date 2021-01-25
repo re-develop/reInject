@@ -76,20 +76,41 @@ namespace ReInject.Implementation.Core
 
     private object RaiseEvent(object[] parameters)
     {
-      object result = null;
-      foreach (var target in _targets.Where(x => x.IsAlive).OrderByDescending(x => x.Priority))
+      if (DelegateInvokeMethod.ReturnType == typeof(Task))
       {
-        try
+        var tasks = new List<Task>();
+        foreach (var target in _targets.Where(x => x.IsAlive).OrderByDescending(x => x.Priority))
         {
-          result = target.Call(parameters);
+          try
+          {
+            tasks.Add((Task)target.Call(parameters));
+          }
+          catch (Exception ex)
+          {
+            Debug.WriteLine(ex);
+          }
         }
-        catch (Exception ex)
-        {
-          Debug.WriteLine(ex);
-        }
-      }
 
-      return result;
+        return Task.WhenAll(tasks);
+      }
+      else
+      {
+
+        object result = null;
+        foreach (var target in _targets.Where(x => x.IsAlive).OrderByDescending(x => x.Priority))
+        {
+          try
+          {
+            result = target.Call(parameters);
+          }
+          catch (Exception ex)
+          {
+            Debug.WriteLine(ex);
+          }
+        }
+
+        return result;
+      }
     }
 
     public void AddTarget(EventProxyTarget target)
