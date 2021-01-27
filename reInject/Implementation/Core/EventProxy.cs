@@ -152,7 +152,7 @@ namespace ReInject.Implementation.Core
           gen.Emit(Ld_OpCodes[i + 1]);
         }
 
-        if (type.IsPrimitive)
+        if (type.IsValueType)
           gen.Emit(OpCodes.Box, type);
 
         gen.Emit(OpCodes.Stelem_Ref);

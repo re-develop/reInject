@@ -10,6 +10,7 @@ using ReInject.Implementation.Core;
 using ReInject.Implementation.DependencyTypes;
 using ReInject.Utils;
 using Xunit;
+using static ReInjectTests.EventSource;
 
 namespace ReInjectTests
 {
@@ -34,12 +35,18 @@ namespace ReInjectTests
 
   public class EventSource
   {
-    public delegate int TestDelegate(int num, string test, object obj1, object obj2, object obj3);
+    public delegate int TestDelegate(int num, string test, object obj1, object obj2, TestData obj3);
     public event TestDelegate TestEvent;
+
+    public struct TestData
+    {
+      public int Field1;
+      public string Field2;
+    }
 
     public int CallEvent(int num)
     {
-      return TestEvent?.Invoke(num, "lol", null, null, null) ?? -1;
+      return TestEvent?.Invoke(num, "lol", null, null, new TestData() { Field1 = 13, Field2 = "test" }) ?? -1;
     }
   }
 
@@ -48,7 +55,7 @@ namespace ReInjectTests
     public int LastEventValue { get; private set; }
 
     [InjectEvent("test")]
-    public int HandleEvent(int num, string test, object obj1, object obj2, object obj3)
+    public int HandleEvent(int num, string test, object obj1, object obj2, TestData obj3)
     {
       LastEventValue = num;
       return num * 2;
