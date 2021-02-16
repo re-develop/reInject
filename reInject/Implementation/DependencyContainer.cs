@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using ReInject.Core;
@@ -204,10 +205,12 @@ namespace ReInject.Implementation
       {
         return Parent.GetInstance(type, name);
       }
-      else
+      else if(type.IsClass && type.IsAbstract == false)
       {
         return TypeInjectionMetadataCache.GetMetadataCache(type).CreateInstance(this);
       }
+
+      return null;
     }
 
     /// <summary>
@@ -299,6 +302,15 @@ namespace ReInject.Implementation
       }
 
       return false;
+    }
+
+    public void SetEventTargetEnabled(object target, bool enabled, params string[] events)
+    {
+      var proxies = (IEnumerable<EventProxy>)_eventProxies.Values;
+      if (events != null && events.Length > 0)
+        proxies = _eventProxies.Where(x => events.Contains(x.Key)).Select(x => x.Value);
+
+      proxies.ToList().ForEach(x => x.SetTargetEnabled(target, enabled));
     }
   }
 }

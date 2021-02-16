@@ -87,6 +87,33 @@ namespace ReInjectTests
       Assert.Equal(num * 2, res);
     }
 
+
+    [Fact]
+    public void ReInject_TestEventInjection_DisablingEventsWorks()
+    {
+      // Arrange
+      var container = Injector.GetContainer(Guid.NewGuid().ToString());
+      int num = 1337;
+      var source = new EventSource();
+      container.RegisterEventSource(source, "TestEvent", "test");
+
+      // Act
+      var target = container.GetInstance<EventTarget>();
+      var res0 = source.CallEvent(num);
+      container.SetEventTargetEnabled(target, false, "test");
+      var res1 = source.CallEvent(num);
+      container.SetEventTargetEnabled(target, true);
+      var res2 = source.CallEvent(num);
+
+
+
+      // Assert
+      Assert.Equal(num, target.LastEventValue);
+      Assert.Equal(num * 2, res0);
+      Assert.Equal(default(int), res1);
+      Assert.Equal(num * 2, res2);
+    }
+
     [Fact]
     public void ReInject_TestEventInjection_AttributeBasedInjectionWorks()
     {
@@ -99,6 +126,7 @@ namespace ReInjectTests
       // Act
       var target = container.GetInstance<EventTarget>();
       var res = source.CallEvent(num);
+
 
       // Assert
       Assert.Equal(num, target.LastEventValue);

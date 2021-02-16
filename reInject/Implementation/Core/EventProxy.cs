@@ -28,12 +28,13 @@ namespace ReInject.Implementation.Core
     {
       this._target = new WeakReference<object>(target);
       TargetMethod = receiver;
+      Enabled = true;
     }
 
     public object Target => GetRef();
     public bool IsAlive => GetRef() != null;
     public int Priority { get; set; }
-
+    public bool Enabled { get; set; }
     public object Call(object[] parameters)
     {
       if (_target.TryGetTarget(out var obj))
@@ -74,12 +75,20 @@ namespace ReInject.Implementation.Core
       _eventInfo.AddEventHandler(source, _boundDelegate);
     }
 
+    public void SetTargetEnabled(object obj, bool enabled)
+    {
+      if (obj == null)
+        return;
+
+      _targets.Where(x => obj.Equals(x.Target)).ToList().ForEach(x => x.Enabled = enabled);
+    }
+
     private object RaiseEvent(object[] parameters)
     {
       if (DelegateInvokeMethod.ReturnType == typeof(Task))
       {
         var tasks = new List<Task>();
-        foreach (var target in _targets.Where(x => x.IsAlive).OrderByDescending(x => x.Priority))
+        foreach (var target in _targets.Where(x => x.IsAlive && x.Enabled).OrderByDescending(x => x.Priority))
         {
           try
           {
@@ -95,9 +104,8 @@ namespace ReInject.Implementation.Core
       }
       else
       {
-
-        object result = null;
-        foreach (var target in _targets.Where(x => x.IsAlive).OrderByDescending(x => x.Priority))
+        object result = DelegateInvokeMethod.ReturnType.IsValueType ? Activator.CreateInstance(DelegateInvokeMethod.ReturnType) : null;
+        foreach (var target in _targets.Where(x => x.IsAlive && x.Enabled).OrderByDescending(x => x.Priority))
         {
           try
           {

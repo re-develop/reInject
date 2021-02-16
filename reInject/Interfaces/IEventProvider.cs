@@ -45,5 +45,13 @@ namespace ReInject.Interfaces
     /// <returns>If an event with name <paramref name="eventName"/> exists and could be bound to the Target</returns>
     /// <exception cref="ArgumentException">Thrown when the signature of <paramref name="info"/> missmatches with the eventsource</exception>
     public bool RegisterEventTarget(string eventName, object instance, MethodInfo info);
+
+    /// <summary>
+    /// Sets if an EventTarget is enabled
+    /// </summary>
+    /// <param name="target">The target object</param>
+    /// <param name="enabled">Wheter the object will receive events or not</param>
+    /// <param name="events">A list of events to enable/disable if empty or null all events are targeted</param>
+    public void SetEventTargetEnabled(object target, bool enabled, params string[] events);
   }
 }
