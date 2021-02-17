@@ -170,8 +170,10 @@ namespace ReInjectTests
     public void ReInject_UsesNamedParameter_IfTypesAndNameAreGiven()
     {
       var container = Injector.GetContainer(Guid.NewGuid().ToString());// get independent container
-      container.Register<IHelloService, HelloService>().Register<IHelloService, HelloService2>(name: "hello").Register<GoodByeService>(DependencyStrategy.NewInstance);
+      container.Register<IHelloService, HelloService>().Register<GoodByeService>(DependencyStrategy.NewInstance);
       var inst = container.GetInstance<Greeter>();
+      container.Register<IHelloService, HelloService2>(name: "hello");
+      container.PostInject(inst);
       var msg = inst.Greet();
 
       Assert.Equal("Hello Matrix\nI am Greeter\nGood Bye", msg);

@@ -105,20 +105,25 @@ namespace ReInject.Core
         inst = FormatterServices.GetUninitializedObject(CachedType);
       }
 
+      PostInject(container, inst);
 
+      return inst;
+    }
+
+    public void PostInject(IDependencyContainer container, object obj)
+    {
       foreach (var member in _members)
         if (container.IsKnownType(member.Value, _memberAttributes.GetValueOrDefault(member.Key)?.Name))
-          _setters[member.Key](inst, container.GetInstance(member.Value, _memberAttributes.GetValueOrDefault(member.Key)?.Name));
+          _setters[member.Key](obj, container.GetInstance(member.Value, _memberAttributes.GetValueOrDefault(member.Key)?.Name));
 
-      foreach(var @event in _bindableEvents)
+      foreach (var @event in _bindableEvents)
       {
-        if (container.RegisterEventTarget(@event.Value.EventName, inst, @event.Key) == false)
+        if (container.RegisterEventTarget(@event.Value.EventName, obj, @event.Key) == false)
         {
           // TODO: log
         }
       }
 
-      return inst;
     }
 
     /// <summary>

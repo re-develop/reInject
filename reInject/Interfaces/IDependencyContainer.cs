@@ -70,5 +70,11 @@ namespace ReInject.Interfaces
     /// <param name="name">An optional name to register multiple dependencies of the same type</param>
     /// <returns>This container for builder pattern</returns>
     IDependencyContainer Register(Type type, Type interfaceType, DependencyStrategy strategy = DependencyStrategy.SingleInstance, bool overwrite = false, object instance = null, string name = null);
+
+    /// <summary>
+    /// Inject dependencies in an already existing object using attributes
+    /// </summary>
+    /// <param name="obj">The object to inject into</param>
+    void PostInject(object obj);
   }
 }

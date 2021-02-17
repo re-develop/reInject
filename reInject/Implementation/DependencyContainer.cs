@@ -205,7 +205,7 @@ namespace ReInject.Implementation
       {
         return Parent.GetInstance(type, name);
       }
-      else if(type.IsClass && type.IsAbstract == false)
+      else if (type.IsClass && type.IsAbstract == false)
       {
         return TypeInjectionMetadataCache.GetMetadataCache(type).CreateInstance(this);
       }
@@ -255,7 +255,7 @@ namespace ReInject.Implementation
 
     public void RegisterEventSource(object sender, string bindTo, string uniqueEventName, bool overwrite = false)
     {
-      if(overwrite || _eventProxies.ContainsKey(uniqueEventName) == false)
+      if (overwrite || _eventProxies.ContainsKey(uniqueEventName) == false)
       {
         UnregisterEventSource(uniqueEventName);
         _eventProxies[uniqueEventName] = new EventProxy(sender, bindTo, uniqueEventName);
@@ -264,7 +264,7 @@ namespace ReInject.Implementation
 
     public void UnregisterEventSource(string uniqueEventName)
     {
-      if(_eventProxies.TryGetValue(uniqueEventName, out var proxy))
+      if (_eventProxies.TryGetValue(uniqueEventName, out var proxy))
       {
         _eventProxies.Remove(uniqueEventName);
         proxy.Dispose();
@@ -311,6 +311,16 @@ namespace ReInject.Implementation
         proxies = _eventProxies.Where(x => events.Contains(x.Key)).Select(x => x.Value);
 
       proxies.ToList().ForEach(x => x.SetTargetEnabled(target, enabled));
+    }
+
+    public void PostInject(object obj)
+    {
+      if (obj == null)
+        return;
+
+      var meta = TypeInjectionMetadataCache.GetMetadataCache(obj.GetType());
+      if (meta != null)
+        meta.PostInject(this, obj);
     }
   }
 }
