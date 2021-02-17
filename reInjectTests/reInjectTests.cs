@@ -37,6 +37,7 @@ namespace ReInjectTests
   {
     public delegate int TestDelegate(int num, string test, object obj1, object obj2, TestData obj3);
     public event TestDelegate TestEvent;
+    public event Action<string, int> SimpleEvent;
 
     public struct TestData
     {
@@ -46,6 +47,7 @@ namespace ReInjectTests
 
     public int CallEvent(int num)
     {
+      SimpleEvent?.Invoke("test", num);
       return TestEvent?.Invoke(num, "lol", null, null, new TestData() { Field1 = 13, Field2 = "test" }) ?? -1;
     }
   }
@@ -53,12 +55,19 @@ namespace ReInjectTests
   public class EventTarget
   {
     public int LastEventValue { get; private set; }
+    public string LastSimpleEventValue { get; private set; }
 
     [InjectEvent("test")]
     public int HandleEvent(int num, string test, object obj1, object obj2, TestData obj3)
     {
       LastEventValue = num;
       return num * 2;
+    }
+
+    [InjectEvent("simple")]
+    public void HandleSimple(string str, int num)
+    {
+      LastSimpleEventValue = str + num;
     }
 
   }
@@ -76,8 +85,11 @@ namespace ReInjectTests
       var target = new EventTarget();
 
       var proxy = new EventProxy(source, nameof(source.TestEvent), "test");
+      var proxy2 = new EventProxy(source, nameof(source.SimpleEvent), "simple");
       var proxyTarget = new EventProxyTarget(target, ReflectionHelper.GetMember<MethodInfo>(target.GetType(), "HandleEvent"));
+      var proxyTarget2 = new EventProxyTarget(target, ReflectionHelper.GetMember<MethodInfo>(target.GetType(), "HandleSimple"));
       proxy.AddTarget(proxyTarget);
+      proxy2.AddTarget(proxyTarget2);
 
       // Act
       var res = source.CallEvent(num);
@@ -85,6 +97,7 @@ namespace ReInjectTests
       // Assert
       Assert.Equal(num, target.LastEventValue);
       Assert.Equal(num * 2, res);
+      Assert.Equal($"test{num}", target.LastSimpleEventValue);
     }
 
 

@@ -104,7 +104,8 @@ namespace ReInject.Implementation.Core
       }
       else
       {
-        object result = DelegateInvokeMethod.ReturnType.IsValueType ? Activator.CreateInstance(DelegateInvokeMethod.ReturnType) : null;
+        var returnType = DelegateInvokeMethod.ReturnType;
+        object result = (returnType.IsValueType && returnType != typeof(void)) ? Activator.CreateInstance(DelegateInvokeMethod.ReturnType) : null;
         foreach (var target in _targets.Where(x => x.IsAlive && x.Enabled).OrderByDescending(x => x.Priority))
         {
           try
