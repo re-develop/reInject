@@ -23,7 +23,3 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish Nuget to GitHub registry
-      run: dotnet nuget push ./<project>/out/*.nupkg -k ${NUGET_TOKEN} -s https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols 
-      env:
-        NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
