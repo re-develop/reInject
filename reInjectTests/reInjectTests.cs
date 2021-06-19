@@ -100,6 +100,28 @@ namespace ReInjectTests
       Assert.Equal($"test{num}", target.LastSimpleEventValue);
     }
 
+    class ReadOnlyPropertyClass
+    {
+      [Inject(name: "num")]
+      public int Property { get; } = 0;
+    }
+
+    [Fact]
+    public void ReInject_TestReadonlyPropertyInjections_WorksIfDefaultGetOnlyProperty()
+    {
+      // Arrange
+      var container = Injector.GetContainer(Guid.NewGuid().ToString());
+      var num = 1337;
+      container.Register<int>(DependencyStrategy.AtomicInstance, true, num, "num");
+
+      // Act
+      var instance = container.GetInstance<ReadOnlyPropertyClass>();
+
+      // Assert
+      Assert.Equal(num, instance.Property);
+
+    }
+
 
     [Fact]
     public void ReInject_TestEventInjection_DisablingEventsWorks()
