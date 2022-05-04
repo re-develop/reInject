@@ -114,5 +114,25 @@ namespace reInjectTests
       // Assert
       Assert.Equal(1, instance.CountCalled);
     }
+
+    [Fact]
+    public void PostInjector_CanBeDisabled_AndBackEnabled()
+    {
+      // Arrange
+      var container = Injector.GetContainer(Guid.NewGuid().ToString());
+      var injector = container.RegisterPostInjector<TestInjector>();
+
+      // Act
+      var instance = container.GetInstance<PostInjectorDummy>();
+      injector.Call("Call 1");
+      container.SetPostInjectionsEnabled(instance, false);
+      injector.Call("Call 2");
+      container.SetPostInjectionsEnabled(instance, true);
+      injector.Call("Call 3");
+
+      // Assert
+      Assert.Equal(2, instance.CountCalled);
+      Assert.Equal("Call 3", instance.LastMessage);
+    }
   }
 }
