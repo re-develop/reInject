@@ -7,7 +7,7 @@ namespace ReInject.Interfaces
   /// <summary>
   /// Interface to represent an depdendency container
   /// </summary>
-  public interface IDependencyContainer : IServiceProvider, IEventProvider
+  public interface IDependencyContainer : IServiceProvider, IEventProvider, IPostInjectProvider
   {
     /// <summary>
     /// Check if a given type is a registered dependency
@@ -70,6 +70,15 @@ namespace ReInject.Interfaces
     /// <param name="name">An optional name to register multiple dependencies of the same type</param>
     /// <returns>This container for builder pattern</returns>
     IDependencyContainer Register(Type type, Type interfaceType, DependencyStrategy strategy = DependencyStrategy.SingleInstance, bool overwrite = false, object instance = null, string name = null);
+
+    /// <summary>
+    /// Returns all known instances assignable to the given type an their names
+    /// </summary>
+    /// <typeparam name="T">The type of instances to search for</typeparam>
+    /// <param name="searchParents">Wheter the parents should be searched as well</param>
+    /// <returns></returns>
+    public IEnumerable<(T instance, string name)> GetAllKnownInstances<T>(bool searchParents = true);
+
 
     /// <summary>
     /// Inject dependencies in an already existing object using attributes

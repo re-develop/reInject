@@ -33,12 +33,25 @@ namespace ReInject.Implementation
     // internal dictionary to keep track of registered dependencies
     private Dictionary<(Type, string), IDependencyType> _typeCache = new Dictionary<(Type, string), IDependencyType>();
     private Dictionary<string, EventProxy> _eventProxies = new Dictionary<string, EventProxy>();
+    private List<IPostInjector> _postInjectors = new List<IPostInjector>();
 
     /// <summary>
     /// Gets the name of the current dependency container
     /// </summary>
     public string Name { get; private set; }
 
+    public IEnumerable<(T instance, string name)> GetAllKnownInstances<T>(bool searchParents = true)
+    {
+      foreach (var instance in _typeCache)
+      {
+        if (instance.Key.Item1.IsAssignableTo(typeof(T)))
+          yield return ((T)instance.Value.Instance, instance.Key.Item2);
+      }
+
+      if (searchParents && Parent != null)
+        foreach (var instance in Parent.GetAllKnownInstances<T>(searchParents))
+          yield return instance;
+    }
 
     /// <summary>
     /// Check if a given type is a registered dependency
@@ -262,6 +275,8 @@ namespace ReInject.Implementation
       }
     }
 
+
+
     public void UnregisterEventSource(string uniqueEventName)
     {
       if (_eventProxies.TryGetValue(uniqueEventName, out var proxy))
@@ -321,6 +336,62 @@ namespace ReInject.Implementation
       var meta = TypeInjectionMetadataCache.GetMetadataCache(obj.GetType());
       if (meta != null)
         meta.PostInject(this, obj);
+    }
+
+
+
+    public void SetPostInjectionsEnabled(object instance, bool enabled)
+    {
+      _postInjectors.ForEach(x => x.SetInjectionEnabled(instance, enabled));
+    }
+
+    private IPostInjector getPostInjector(Type type, string name)
+    {
+      return _postInjectors.FirstOrDefault(x => x.GetType().IsAssignableTo(type) && (name == null || x.Name == name));
+    }
+
+    public void UnregisterPostInjector<T>(string name = null) where T : IPostInjector
+    {
+      var inst = getPostInjector(typeof(T), name);
+      if (inst != null)
+      {
+        inst.Dispose();
+        _postInjectors.Remove(inst);
+      }
+    }
+
+    public void UnregisterPostInjector(IPostInjector injector)
+    {
+      injector.Dispose();
+      _postInjectors.Remove(injector);
+    }
+
+    public bool RegisterPostInjector(IPostInjector injector, bool overwrite = false)
+    {
+      var existing = getPostInjector(injector.GetType(), injector.Name);
+      if(existing != null)
+      {
+        if (overwrite == false)
+          return false;
+
+        existing.Dispose();
+        _postInjectors.Remove(existing);
+      }
+
+      _postInjectors.Add(injector);
+      return true;
+    }
+
+    public T RegisterPostInjector<T>(Action<T> configure = null, bool overwrite = false) where T : IPostInjector
+    {
+      var inst = GetInstance(configure);
+      var success = RegisterPostInjector(inst, overwrite);
+      return success ? inst : default(T);
+    }
+
+    IEnumerable<IPostInjector> IPostInjectProvider.GetPostInjecors()
+    {
+      return _postInjectors;
     }
   }
 }

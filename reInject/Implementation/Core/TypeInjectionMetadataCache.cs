@@ -124,6 +124,12 @@ namespace ReInject.Core
         }
       }
 
+      foreach(var injector in container.GetPostInjecors().OrderBy(x => x.Priority))
+      {
+        // TODO: log
+        var members = injector.PostInject(container, CachedType, obj).ToList();
+      }
+
     }
 
     /// <summary>
