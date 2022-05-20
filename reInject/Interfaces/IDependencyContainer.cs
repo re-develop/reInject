@@ -23,7 +23,7 @@ namespace ReInject.Interfaces
     /// <param name="type">The type of the depedency to search for</param>
     /// <param name="name">Optional name to register multiple depedencies of the same type, default is null</param>
     /// <returns>True if a depdendency of the given type and name could be found, otherwise false</returns>
-    bool IsKnownType( Type type, string name = null );
+    bool IsKnownType(Type type, string name = null);
 
     /// <summary>
     /// Registers an object, it's class and it's interface as dependency
@@ -35,7 +35,7 @@ namespace ReInject.Interfaces
     /// <param name="instance">An instance of the class for initialisation or atomic instances</param>
     /// <param name="name">An optional name to register multiple dependencies of the same type</param>
     /// <returns>This container for builder pattern</returns>
-    IDependencyContainer Register<I, T>( DependencyStrategy strategy = DependencyStrategy.SingleInstance, bool overwrite = false, object instance = null, string name = null );
+    IDependencyContainer Register<I, T>(DependencyStrategy strategy = DependencyStrategy.SingleInstance, bool overwrite = false, object instance = null, string name = null);
 
     /// <summary>
     /// Registers an object and/or it's class 
@@ -46,7 +46,7 @@ namespace ReInject.Interfaces
     /// <param name="instance">An instance of the class for initialisation or atomic instances</param>
     /// <param name="name">An optional name to register multiple dependencies of the same type</param>
     /// <returns>This container for builder pattern</returns>
-    IDependencyContainer Register<T>( DependencyStrategy strategy = DependencyStrategy.SingleInstance, bool overwrite = false, object instance = null, string name = null);
+    IDependencyContainer Register<T>(DependencyStrategy strategy = DependencyStrategy.SingleInstance, bool overwrite = false, object instance = null, string name = null);
 
     /// <summary>
     /// Registers an object, it's class and it's interface as dependency
@@ -85,5 +85,14 @@ namespace ReInject.Interfaces
     /// </summary>
     /// <param name="obj">The object to inject into</param>
     void PostInject(object obj);
+
+
+    /// <summary>
+    /// Get the strategy of a registered type
+    /// </summary>
+    /// <param name="type">Type</param>
+    /// <param name="name">optional name of the type</param>
+    /// <returns>DependencyStrategy of a known type or null if no type was found</returns>
+    DependencyStrategy? GetDependencyStrategy(Type type, string name = null);
   }
 }

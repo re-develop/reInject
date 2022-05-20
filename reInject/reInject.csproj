@@ -15,9 +15,9 @@
     <PackageTags>di dependency injection dependencyinjection</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <AssemblyVersion>1.5.1</AssemblyVersion>
-    <FileVersion>1.5.1</FileVersion>
-    <Version>1.5.1</Version>
+    <AssemblyVersion>1.5.2</AssemblyVersion>
+    <FileVersion>1.5.2</FileVersion>
+    <Version>1.5.2</Version>
   </PropertyGroup>
 
   <ItemGroup>

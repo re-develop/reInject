@@ -369,7 +369,7 @@ namespace ReInject.Implementation
     public bool RegisterPostInjector(IPostInjector injector, bool overwrite = false)
     {
       var existing = getPostInjector(injector.GetType(), injector.Name);
-      if(existing != null)
+      if (existing != null)
       {
         if (overwrite == false)
           return false;
@@ -392,6 +392,14 @@ namespace ReInject.Implementation
     IEnumerable<IPostInjector> IPostInjectProvider.GetPostInjecors()
     {
       return _postInjectors;
+    }
+
+    public DependencyStrategy? GetDependencyStrategy(Type type, string name = null)
+    {
+      if (_typeCache.TryGetValue((type, name), out var dependency))
+        return dependency.Strategy;
+
+      return null;
     }
   }
 }

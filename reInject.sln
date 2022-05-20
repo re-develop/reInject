@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.181
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "reInject", "reInject\reInject.csproj", "{8D1ED363-5F3A-457B-80C9-CB5A9EF09E64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "reInjectTests", "reInjectTests\reInjectTests.csproj", "{E6ABFC1B-96AE-45C3-8A45-653F9B3261B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "reInjectTests", "reInjectTests\reInjectTests.csproj", "{E6ABFC1B-96AE-45C3-8A45-653F9B3261B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "reInject.Scopes", "reInject.Scopes\reInject.Scopes.csproj", "{667169A8-D006-4150-8EC3-B7EB329F4E69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{E6ABFC1B-96AE-45C3-8A45-653F9B3261B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6ABFC1B-96AE-45C3-8A45-653F9B3261B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6ABFC1B-96AE-45C3-8A45-653F9B3261B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{667169A8-D006-4150-8EC3-B7EB329F4E69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{667169A8-D006-4150-8EC3-B7EB329F4E69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{667169A8-D006-4150-8EC3-B7EB329F4E69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{667169A8-D006-4150-8EC3-B7EB329F4E69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
