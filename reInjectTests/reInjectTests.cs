@@ -56,6 +56,7 @@ namespace ReInjectTests
   {
     public int LastEventValue { get; private set; }
     public string LastSimpleEventValue { get; private set; }
+    public int CountSimpleEventCalled { get; private set; } = 0;
 
     [InjectEvent("test")]
     public int HandleEvent(int num, string test, object obj1, object obj2, TestData obj3)
@@ -65,9 +66,11 @@ namespace ReInjectTests
     }
 
     [InjectEvent("simple")]
+    [InjectEvent("simple2")]
     public void HandleSimple(string str, int num)
     {
       LastSimpleEventValue = str + num;
+      CountSimpleEventCalled++;
     }
 
   }
@@ -157,6 +160,8 @@ namespace ReInjectTests
       int num = 1337;
       var source = new EventSource();
       container.RegisterEventSource(source, "TestEvent", "test");
+      container.RegisterEventSource(source, "SimpleEvent", "simple2");
+      container.RegisterEventSource(source, "SimpleEvent", "simple");
 
       // Act
       var target = container.GetInstance<EventTarget>();
@@ -164,6 +169,8 @@ namespace ReInjectTests
 
 
       // Assert
+      Assert.Equal($"test{num}", target.LastSimpleEventValue);
+      Assert.Equal(2, target.CountSimpleEventCalled);
       Assert.Equal(num, target.LastEventValue);
       Assert.Equal(num * 2, res);
     }

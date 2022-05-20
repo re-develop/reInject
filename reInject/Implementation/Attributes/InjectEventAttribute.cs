@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ReInject.Implementation.Attributes
 {
-  [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+  [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
   public class InjectEventAttribute : Attribute
   {
     public string EventName { get; set; }
