@@ -8,6 +8,7 @@ using ReInject;
 using ReInject.Implementation.Attributes;
 using ReInject.Implementation.Core;
 using ReInject.Implementation.DependencyTypes;
+using ReInject.PostInjectors.EventInjection;
 using ReInject.Utils;
 using Xunit;
 using static ReInjectTests.EventSource;
@@ -133,7 +134,10 @@ namespace ReInjectTests
       var container = Injector.GetContainer(Guid.NewGuid().ToString());
       int num = 1337;
       var source = new EventSource();
-      container.RegisterEventSource(source, "TestEvent", "test");
+      container.AddEventInjector(setup =>
+      {
+        setup.RegisterEventSource(source, "TestEvent", "test");
+      });
 
       // Act
       var target = container.GetInstance<EventTarget>();
@@ -159,9 +163,12 @@ namespace ReInjectTests
       var container = Injector.GetContainer(Guid.NewGuid().ToString());
       int num = 1337;
       var source = new EventSource();
-      container.RegisterEventSource(source, "TestEvent", "test");
-      container.RegisterEventSource(source, "SimpleEvent", "simple2");
-      container.RegisterEventSource(source, "SimpleEvent", "simple");
+      container.AddEventInjector(setup =>
+      {
+        setup.RegisterEventSource(source, "TestEvent", "test")
+        .RegisterEventSource(source, "SimpleEvent", "simple2")
+        .RegisterEventSource(source, "SimpleEvent", "simple");
+      });
 
       // Act
       var target = container.GetInstance<EventTarget>();

@@ -4,14 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ReInject.Implementation.Core
+[assembly: InternalsVisibleTo("ReInjectTests")]
+namespace ReInject.PostInjectors.EventInjection
 {
-  public class EventProxyTarget
+  internal class EventProxyTarget
   {
     private WeakReference<object> _target;
     public MethodInfo TargetMethod { get; init; }
@@ -57,6 +60,7 @@ namespace ReInject.Implementation.Core
     private Delegate _boundDelegate = null;
     private EventInfo _eventInfo = null;
 
+
     public EventProxy(object source, string bindTo, string eventName)
     {
       if (source == null)
@@ -66,6 +70,24 @@ namespace ReInject.Implementation.Core
       if (_eventInfo == null)
         throw new ArgumentException($"No event with name {bindTo} found in type {source.GetType().Name}", nameof(bindTo));
 
+      EventName = eventName;
+      EventSource = source;
+      var delegateType = _eventInfo.EventHandlerType;
+      var delegateInfo = delegateType.GetMethod("Invoke");
+      DelegateInvokeMethod = delegateInfo;
+      _boundDelegate = CompileDynamicReceiver(delegateType, delegateInfo.ReturnType, delegateInfo.GetParameters());
+      _eventInfo.AddEventHandler(source, _boundDelegate);
+    }
+
+    public EventProxy(object source, EventInfo eventInfo, string eventName)
+    {
+      if (source == null)
+        throw new ArgumentNullException(nameof(source));
+
+      if (eventInfo == null)
+        throw new ArgumentException($"No event with name {eventInfo.Name} found in type {source.GetType().Name}", nameof(eventInfo));
+
+      _eventInfo = eventInfo;
       EventName = eventName;
       EventSource = source;
       var delegateType = _eventInfo.EventHandlerType;
@@ -122,7 +144,7 @@ namespace ReInject.Implementation.Core
       }
     }
 
-    public void AddTarget(EventProxyTarget target)
+    internal void AddTarget(EventProxyTarget target)
     {
       if (DelegateInvokeMethod.HasSameSignatures(target.TargetMethod) == false)
         throw new ArgumentException($"wrong method signature, expected {DelegateInvokeMethod.ReturnType.Name} {target.TargetMethod.Name}({string.Join(", ", DelegateInvokeMethod.GetParameters().Select(x => x.ParameterType.Name + " " + x.Name))})", nameof(EventProxyTarget));

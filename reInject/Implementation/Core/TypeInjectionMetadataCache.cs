@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace ReInject.Core
+namespace ReInject.Implementation.Core
 {
   /// <summary>
   /// Class to cache metadata used by the depdendency container
@@ -60,7 +60,6 @@ namespace ReInject.Core
     private Dictionary<ConstructorInfo, ParameterInfo[]> _constructors = new Dictionary<ConstructorInfo, ParameterInfo[]>();
 
     // keeps track of all bindable events
-    private List<(MethodInfo method, InjectEventAttribute attribute)> _bindableEvents = new List<(MethodInfo, InjectEventAttribute)>();
 
     /// <summary>
     /// Returns the type this metadata was generated for
@@ -116,13 +115,6 @@ namespace ReInject.Core
         if (container.IsKnownType(member.Value, _memberAttributes.GetValueOrDefault(member.Key)?.Name))
           _setters[member.Key](obj, container.GetInstance(member.Value, _memberAttributes.GetValueOrDefault(member.Key)?.Name));
 
-      foreach (var @event in _bindableEvents)
-      {
-        if (container.RegisterEventTarget(@event.attribute.EventName, obj, @event.method) == false)
-        {
-          // TODO: log
-        }
-      }
 
       foreach(var injector in container.GetPostInjecors().OrderBy(x => x.Priority))
       {
@@ -142,7 +134,6 @@ namespace ReInject.Core
 
       var fields = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Field).Cast<FieldInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectAttribute>(true)));
       var props = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Property).Cast<PropertyInfo>().Select(x => (info: x, attribute: x.GetCustomAttribute<InjectAttribute>(true)));
-      var events = ReflectionHelper.GetAllMembers(CachedType, MemberTypes.Method).Cast<MethodInfo>().SelectMany(x => x.GetCustomAttributes<InjectEventAttribute>(true).Select(a => (info: x, attribute: a)));
       var ctors = CachedType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
       foreach (var field in fields.Where(x => x.attribute != null))
@@ -179,10 +170,6 @@ namespace ReInject.Core
             _memberAttributes[parameter] = attribute;
         }
       }
-
-      foreach (var @event in events.Where(x => x.attribute != null))
-        _bindableEvents.Add((@event.info, @event.attribute));
-
     }
   }
 }

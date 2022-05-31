@@ -7,7 +7,7 @@ namespace ReInject.Interfaces
   /// <summary>
   /// Interface to represent an depdendency container
   /// </summary>
-  public interface IDependencyContainer : IServiceProvider, IEventProvider, IPostInjectProvider
+  public interface IDependencyContainer : IServiceProvider, IPostInjectProvider
   {
     /// <summary>
     /// Check if a given type is a registered dependency

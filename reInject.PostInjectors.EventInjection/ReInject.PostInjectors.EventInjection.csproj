@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <PackageId>Aeolin.$(AssemblyName)</PackageId>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Version>1.5.3</Version>
+    <Company>reDevelop</Company>
+    <Authors>Aeolin Ferjünnoz</Authors>
+    <RepositoryUrl>https://github.com/re-develop/reInject</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>di dependency injection event dynamic events event injection</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aeolin.reInject" Version="1.5.3" />
+  </ItemGroup>
+
+</Project>

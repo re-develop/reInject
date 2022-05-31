@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ReInject.Implementation.Attributes
+namespace ReInject.PostInjectors.EventInjection
 {
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
   public class InjectEventAttribute : Attribute

@@ -44,7 +44,18 @@ namespace ReInject.Interfaces
     /// </summary>
     /// <param name="instance">The object instance</param>
     /// <param name="enabled">If the PostInjectors for this instance are enabled</param>
-    public void SetPostInjectionsEnabled(object instance, bool enabled);
+    /// <param name="name">optional name to target specific post injector</param>
+    public void SetPostInjectionsEnabled(object instance, bool enabled, string name = null);
+
+    /// <summary>
+    /// Disables PostInjectors by type, if <paramref name="name"/> is null all post injectors for the given <paramref name="instance"/> of <typeparamref name="T"/> are set 
+    /// </summary>
+    /// <typeparam name="T">The type of postinjectors</typeparam>
+    /// <param name="instance">The object instance</param>
+    /// <param name="enabled">If the PostInjectors for this instance are enabled</param>
+    /// <param name="name">optional name to target specific post injector</param>
+    public void SetPostInjectionsEnabled<T>(object instance, bool enabled, string name = null);
+
 
     /// <summary>
     /// Returns a IEnumerable containing all available PostInjectors in the current provider

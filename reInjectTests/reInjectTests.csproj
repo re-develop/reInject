@@ -20,7 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\reInject\reInject.csproj" />
+    <ProjectReference Include="..\reInject.PostInjectors.EventInjection\ReInject.PostInjectors.EventInjection.csproj" />
+    <ProjectReference Include="..\reInject\ReInject.csproj" />
   </ItemGroup>
 
 </Project>

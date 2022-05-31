@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ReInject.Interfaces
+namespace ReInject.PostInjectors.EventInjection
 {
   public interface IEventProvider
   {
@@ -16,25 +16,35 @@ namespace ReInject.Interfaces
     /// <param name="bindTo">Name of the event to bind to</param>
     /// <param name="eventName">Unique name for dependency</param>
     /// <param name="overwrite">If an already existing event should be overwritten or not</param>
-    public void RegisterEventSource(object sender, string bindTo, string eventName, bool overwrite = false);
+    public IEventProvider RegisterEventSource(object sender, string bindTo, string eventName, bool overwrite = false);
+
+    /// <summary>
+    /// Registers all events of an specific object as dependency so it later can be injected via InjectEventAttribute
+    /// </summary>
+    /// <param name="sender">Object which dispatches the events</param>
+    /// <param name="prefix">A common prefix for all event names</param>
+    /// <param name="nameFunc">An optional function to generate EventNames from the EventInfo, if null is given the name of the EventInfo will be used</param>
+    /// <param name="filterFunc">An optional function to filter out EventInfos from registration</param>
+    /// <param name="overwriteFunc">An optional function to check if an EventInfo should be overwriting an already existing one, by default nothing will be overwritten</param>
+    public IEventProvider RegisterEventSources(object sender, string prefix, Func<EventInfo, string> nameFunc = null, Func<EventInfo, bool> filterFunc = null, Func<EventInfo, bool> overwriteFunc = null);
 
     /// <summary>
     /// Unregisters an eventsource an all injected handlers
     /// </summary>
     /// <param name="uniqueEventName">The unique name given of the event</param>
-    public void UnregisterEventSource(string uniqueEventName);
+    public IEventProvider UnregisterEventSource(string uniqueEventName);
 
     /// <summary>
     /// Unregisters all eventsources provided by the given object
     /// </summary>
     /// <param name="sender">The object which eventsources should be unregistered</param>
-    public void UnregisterEventSources(object sender);
+    public IEventProvider UnregisterEventSources(object sender);
 
     /// <summary>
     /// Unregisters all eventsources of all object of type T
     /// </summary>
     /// <typeparam name="T">The Type to search eventsources by</typeparam>
-    public void UnregisterEventSources<T>();
+    public IEventProvider UnregisterEventSources<T>();
 
     /// <summary>
     /// Registers an method to receive events of a given source
