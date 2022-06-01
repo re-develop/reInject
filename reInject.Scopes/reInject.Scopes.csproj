@@ -6,20 +6,20 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>di dependency injection dependencyinjection reInject</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
-    <AssemblyVersion>1.5.2</AssemblyVersion>
-    <FileVersion>1.5.2</FileVersion>
+    <AssemblyVersion>1.5.3</AssemblyVersion>
+    <FileVersion>1.5.3</FileVersion>
     <Company>reDevelop</Company>
     <Authors>Aeolin Ferjünnoz</Authors>
     <Product>reInject.Scopes</Product>
     <Description>IServiceScope and IServiceScopeFactory Implementation for reinject</Description>
     <Copyright>Aeolin Ferjünnoz</Copyright>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.5.2</Version>
+    <Version>1.5.3</Version>
     <PackageId>Aeolin.reInject.Scopes</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aeolin.reInject" Version="1.5.2" />
+    <PackageReference Include="Aeolin.reInject" Version="1.5.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
   </ItemGroup>
 

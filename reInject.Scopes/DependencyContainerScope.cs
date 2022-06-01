@@ -104,15 +104,7 @@ namespace reInject.Scopes
       return _container.Register(type, interfaceType, strategy, overwrite, instance, name);
     }
 
-    public void RegisterEventSource(object sender, string bindTo, string eventName, bool overwrite = false)
-    {
-      _container.RegisterEventSource(sender, bindTo, eventName, overwrite);
-    }
-
-    public bool RegisterEventTarget(string eventName, object instance, MethodInfo info)
-    {
-      return _container.RegisterEventTarget(eventName, instance, info);
-    }
+  
 
     public bool RegisterPostInjector(IPostInjector injector, bool overwrite = false)
     {
@@ -124,30 +116,11 @@ namespace reInject.Scopes
       return _container.RegisterPostInjector(configure, overwrite);
     }
 
-    public void SetEventTargetEnabled(object target, bool enabled, params string[] events)
-    {
-      _container.SetEventTargetEnabled(target, enabled, events);
-    }
-
     public void SetPostInjectionsEnabled(object instance, bool enabled)
     {
       _container.SetPostInjectionsEnabled(instance, enabled);
     }
 
-    public void UnregisterEventSource(string uniqueEventName)
-    {
-      _container.UnregisterEventSource(uniqueEventName);
-    }
-
-    public void UnregisterEventSources(object sender)
-    {
-      _container.UnregisterEventSources(sender);
-    }
-
-    public void UnregisterEventSources<T>()
-    {
-      _container.UnregisterEventSources<T>();
-    }
 
     public void UnregisterPostInjector<T>(string name = null) where T : IPostInjector
     {
@@ -162,6 +135,16 @@ namespace reInject.Scopes
     public DependencyStrategy? GetDependencyStrategy(Type type, string name = null)
     {
       return _container.GetDependencyStrategy(type, name);
+    }
+
+    public void SetPostInjectionsEnabled(object instance, bool enabled, string name = null)
+    {
+      _container.SetPostInjectionsEnabled(instance, enabled, name);
+    }
+
+    public void SetPostInjectionsEnabled<T>(object instance, bool enabled, string name = null)
+    {
+      _container.SetPostInjectionsEnabled<T>(instance, enabled, name);
     }
   }
 }

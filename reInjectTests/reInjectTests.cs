@@ -319,7 +319,7 @@ namespace ReInjectTests
     }
 
     public string Greet()
-    {
+    {       
       return string.Join("\n", _helloService.SayHello(), _message, _goodByeService.SayGoodBye());
     }
   }

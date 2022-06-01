@@ -12,15 +12,15 @@
     <RepositoryUrl>https://github.com/re-develop/reInject</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>di dependency injection background worker scheduler</PackageTags>
-    <AssemblyVersion>1.5.2</AssemblyVersion>
-    <FileVersion>1.5.2</FileVersion>
+    <AssemblyVersion>1.5.3</AssemblyVersion>
+    <FileVersion>1.5.3</FileVersion>
     <Copyright>Aeolin Ferjünnoz</Copyright>
     <Description>An extension for reInject adding post injectable background workers</Description>
-    <Version>1.5.2</Version>
+    <Version>1.5.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aeolin.reInject" Version="1.5.2" />
+    <PackageReference Include="Aeolin.reInject" Version="1.5.3" />
     <PackageReference Include="Cronos" Version="0.7.1" />
   </ItemGroup>
 
