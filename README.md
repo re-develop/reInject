@@ -3,7 +3,7 @@ reInject is a leightweight and flexible depedendency injection framework.
 
 ## Basic Usage
 ```csharp
-class Greeter
+class GreeterBasic
 {
   [Inject(Name = "hello")] // search for service of type IHelloService with name hello
   private IHelloService _helloService;
@@ -61,7 +61,8 @@ container.Clear(); // clear all cached instances of registered classes except At
 | NewInstance    | Always returns a new instance                                                                                                          | Ignored          |
 
 ## Overview over EventInjectAttribute
-With event injection events can be subscribed via DependencyInjection. For that an eventsource with an unique name has to be registered  by calling `IDependencyContainer.RegisterEventSource`. 
+With event injection events can be subscribed via DependencyInjection. For that an eventsource with an unique name has to be registered  by calling `IDependencyContainer.AddEvenInjector(setup => setup.RegisterEventSource())`. 
+The nuget package Aeolin.reInject.PostInjectors.EventInjections is required for this to work
 To inject an event an object got via `IDependencyContainer.GetInstance<T>` must have an method with the same signature as the event must be marked with an InjectEvent attribute where the name parameter must be the same as the `eventName` used for registering the eventsource. 
 
 ```csharp
@@ -89,8 +90,11 @@ public class EventTarget
 }
 
 var container = Injector.GetContainer();
-var source = new EventSource();
-container.RegisterEventSource(source, nameof(source.TestEvent) "UniqueEventName", true);
+var source = new ObjectWithEvents();
+_container.AddEventInjector(setup =>
+{
+  setup.RegisterEventSources(source, "Prefix:");
+});
 var target = container.GetInstance<EventTarget>();
 var result = source.CallEvent(5); 
 // target.LastEventValue is now 5
