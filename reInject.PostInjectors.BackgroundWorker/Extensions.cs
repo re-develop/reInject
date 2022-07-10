@@ -21,5 +21,14 @@ namespace reInject.PostInjectors.BackgroundWorker
       container.RegisterPostInjector(injector, true);
       return container;
     }
+
+    public static IDependencyContainer AddBackgroundWorker(this IDependencyContainer container, string name = null, int priority = 0, TimeSpan? schedulerPeriod = null, Action<BackgroundWorkerInjector> setup = null)
+    {
+      var injector = new BackgroundWorkerInjector(name, priority, schedulerPeriod);
+      setup?.Invoke(injector);
+      container.Register<IBackgroundWorkerManager>(DependencyStrategy.AtomicInstance, true, injector, name);
+      container.RegisterPostInjector(injector, true);
+      return container;
+    }
   }
 }
