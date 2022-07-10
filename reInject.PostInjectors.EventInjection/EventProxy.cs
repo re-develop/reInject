@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("ReInjectTests")]
 namespace ReInject.PostInjectors.EventInjection
 {
-  internal class EventProxyTarget
+  internal class EventProxyTarget 
   {
     private WeakReference<object> _target;
     public MethodInfo TargetMethod { get; init; }
@@ -38,6 +38,7 @@ namespace ReInject.PostInjectors.EventInjection
     public bool IsAlive => GetRef() != null;
     public int Priority { get; set; }
     public bool Enabled { get; set; }
+
     public object Call(object[] parameters)
     {
       if (_target.TryGetTarget(out var obj))
@@ -49,16 +50,22 @@ namespace ReInject.PostInjectors.EventInjection
     }
   }
 
-  public class EventProxy : IDisposable
+  public class EventProxy : IDisposable, IEventSource
   {
     public object EventSource { get; private set; }
     public string EventName { get; private set; }
     public MethodInfo DelegateInvokeMethod { get; private set; }
+    
+    private bool _enabled = true;
+    public bool Enabled { get => _enabled; set => setSourceEnabled(value); }
+
+    public Guid Id { get; init; } = Guid.NewGuid();
 
     private List<EventProxyTarget> _targets = new List<EventProxyTarget>();
 
     private Delegate _boundDelegate = null;
     private EventInfo _eventInfo = null;
+
 
 
     public EventProxy(object source, string bindTo, string eventName)
@@ -96,6 +103,18 @@ namespace ReInject.PostInjectors.EventInjection
       _boundDelegate = CompileDynamicReceiver(delegateType, delegateInfo.ReturnType, delegateInfo.GetParameters());
       _eventInfo.AddEventHandler(source, _boundDelegate);
     }
+
+    private void setSourceEnabled(bool enabled)
+    {
+      if(_enabled == false && enabled == true) 
+        _eventInfo.AddEventHandler(EventSource, _boundDelegate);
+
+      if (_enabled == true && enabled == false)
+        _eventInfo.RemoveEventHandler(EventSource, _boundDelegate);
+      
+      _enabled = enabled;
+    }
+
 
     public void SetTargetEnabled(object obj, bool enabled)
     {
