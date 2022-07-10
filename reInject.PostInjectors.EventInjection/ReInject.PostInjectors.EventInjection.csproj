@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <PackageId>Aeolin.$(AssemblyName)</PackageId>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.5.3</Version>
+    <Version>1.5.3.1</Version>
     <Company>reDevelop</Company>
     <Authors>Aeolin Ferjünnoz</Authors>
     <RepositoryUrl>https://github.com/re-develop/reInject</RepositoryUrl>
