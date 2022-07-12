@@ -1,4 +1,5 @@
-﻿using ReInject;
+﻿using Microsoft.Extensions.Logging;
+using ReInject;
 using ReInject.Interfaces;
 using ReInject.PostInjectors.BackgroundWorker;
 using System;
@@ -11,9 +12,10 @@ namespace reInject.PostInjectors.BackgroundWorker
 {
   public static class Extensions
   {
-    public static IDependencyContainer AddBackgroundWorker(this IDependencyContainer container, Action<BackgroundWorkerInjector> setup = null, string name = null)
+    public static IDependencyContainer AddBackgroundWorker(this IDependencyContainer container, Action<BackgroundWorkerInjector> setup = null, string name = null, ILoggerFactory factory = null)
     {
-      var injector = new BackgroundWorkerInjector();
+      factory ??= container.GetInstance<ILoggerFactory>();
+      var injector = new BackgroundWorkerInjector(factory: factory);
       if(setup != null)
         setup(injector);
 
@@ -22,9 +24,10 @@ namespace reInject.PostInjectors.BackgroundWorker
       return container;
     }
 
-    public static IDependencyContainer AddBackgroundWorker(this IDependencyContainer container, string name = null, int priority = 0, TimeSpan? schedulerPeriod = null, Action<BackgroundWorkerInjector> setup = null)
+    public static IDependencyContainer AddBackgroundWorker(this IDependencyContainer container, string name = null, int priority = 0, TimeSpan? schedulerPeriod = null, Action<BackgroundWorkerInjector> setup = null, ILoggerFactory factory = null)
     {
-      var injector = new BackgroundWorkerInjector(name, priority, schedulerPeriod);
+      factory ??= container.GetInstance<ILoggerFactory>();
+      var injector = new BackgroundWorkerInjector(name, priority, schedulerPeriod, factory);
       setup?.Invoke(injector);
       container.Register<IBackgroundWorkerManager>(DependencyStrategy.AtomicInstance, true, injector, name);
       container.RegisterPostInjector(injector, true);

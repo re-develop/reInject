@@ -73,17 +73,18 @@ namespace ReInject.PostInjectors.BackgroundWorker
       }
     }
 
-    internal void ScheduleNextCall()
+    internal bool ScheduleNextCall() => ScheduleNextCall(out _);
+    internal bool ScheduleNextCall(out DateTime? nextCall)
     {
       _nextCall?.Dispose();
       var now = DateTime.UtcNow;
-      var next = Schedule.GetNextOccurrence(now);
-      if (next.HasValue == false || next > _scheduler.NextUpdate)
-        return;
+      nextCall = Schedule.GetNextOccurrence(now);
+      if (Enabled == false || nextCall.HasValue == false || nextCall > _scheduler.NextUpdate)
+        return false;
 
-      var dueTime = next.Value - now;
-      if (Enabled)
-        _nextCall = new Timer(callback, null, dueTime, Timeout.InfiniteTimeSpan);
+      var dueTime = nextCall.Value - now;
+      _nextCall = new Timer(callback, null, dueTime, Timeout.InfiniteTimeSpan);
+      return true;
     }
 
 
