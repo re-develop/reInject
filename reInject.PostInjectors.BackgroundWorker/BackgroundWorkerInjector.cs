@@ -72,13 +72,13 @@ namespace ReInject.PostInjectors.BackgroundWorker
     }
 
     public IEnumerable<MemberInfo> PostInject(IDependencyContainer container, Type type, object instance)
-    {
-      _logger?.LogTrace($"Run postinjections on object ({instance}) of type={type.FullName} with container {container.Name}");
+    { 
       foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
       {
         var attributes = method.GetCustomAttributes<BackgroundWorkerAttribute>().ToArray();
         if (attributes.Length > 0)
         {
+          _logger?.LogTrace($"Run postinjections on object ({instance}) of type={type.FullName} with container {container.Name}");
           foreach (var attribute in attributes)
             _tasks.Add(new BackgroundTask(this, method, instance, attribute.GetSchedule(instance)));
 

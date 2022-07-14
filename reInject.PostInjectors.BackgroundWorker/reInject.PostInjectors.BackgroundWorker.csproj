@@ -12,11 +12,11 @@
     <RepositoryUrl>https://github.com/re-develop/reInject</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>di dependency injection background worker scheduler</PackageTags>
-    <AssemblyVersion>1.5.4.1</AssemblyVersion>
-    <FileVersion>1.5.4.1</FileVersion>
+    <AssemblyVersion>1.5.4.2</AssemblyVersion>
+    <FileVersion>1.5.4.2</FileVersion>
     <Copyright>Aeolin Ferjünnoz</Copyright>
     <Description>An extension for reInject adding post injectable background workers</Description>
-    <Version>1.5.4.1</Version>
+    <Version>1.5.4.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
