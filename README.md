@@ -35,11 +35,11 @@ class GreeterBasic
 
 var container = Injector.GetContainer(); // gets the default container where name is null, containers are compatible with System.IServiceProvider
 container
-  .Register<IHelloService, HelloService>() // adds IHelloService & HelloService to collection which both resolve to HelloService with strategy SingleInstance
-  .Register<IHelloService, HelloService>(DependencyStrategy.AtomicInstance, true, new HelloService(), "hello") // registers an AtomicInstance
-  .Register<HelloService2>(DependencyStrategy.CachedInstance) // register caches instance
-  .Register<GoodByeService>()
-  .Register<GoodByeService>(DependencyStrategy.AtomicInstance, true, new GoodByeService("Custom goodbye message"), "otherService"); // register second goodbyeservice which for example has specific settings and should be accessible with a name
+  .AddLazySingleton<IHelloService, HelloService>() // registers a lazy evaluated singleton which resolves for IHelloService with the implementation HelloService
+  .AddSingleton<IHelloService, HelloService>(new HelloService(), true, "hello") // registers a lazy evaluated singleton which resolves for IHelloService with the implementation HelloService with the specific name "hello"
+  .AddCached<HelloService2>() // registers caches instance
+  .AddSingleton<GoodByeService>() // adds GoodByeService as singleton, creating a instance as the function is called using the container
+  .AddSingleton<GoodByeService>(new GoodByeService("Custom goodbye message"), true, "otherService"); // register second goodbyeservice as a singleton which for example has specific settings and should be accessible with a name
 
 Greeter instance = container.GetInstance<Greeter>(); // gets instance via generic parameter
 object instance2 = container.GetInstance(typeof(Greeter)); // gets instance via type
@@ -51,14 +51,18 @@ var otherContainer = Injector.GetContainer("other", container); // creates a new
 Injector.RemoveContainer("other"); // remove container other from cache, if GetContainer with name other is called again a new container will be created
 container.Clear(); // clear all cached instances of registered classes except AtomicInstance 
 ```
-## Overview over `DependencyStrategy` enum
+## Overview over Service Lifetime
 
-| Type           | Description                                                                                                                                | Initial Instance |
-|----------------|----------------------------------------------------------------------------------------------------------------------------------------|------------------|
-| SingleInstance | If no instance is passed one will be created and kept                                                                                  | Optional         |
-| AtomicInstance | Always keeps the same instance, works like a singleton, ignores cache cleans                                                           | Required         |
-| CachedInstance | Keeps a reference to the calculated or initial value with a WeekReference, only create new instance if old value was garbage collected | Optional         |
-| NewInstance    | Always returns a new instance                                                                                                          | Ignored          |
+| Type           | Description                                                                                                                                        | Clearable  |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| LazySingleton  | Singleton which gets created as soone as it's needed for the first time, gets cleared if clear is called on the container                          | Yes        |
+| Singleton      | Singleton which gets created when add is called if no instance is passed                                                                           | No         |
+| Cached         | Keeps a WeekReference to the laste constructed value, only creates new instance if week reference was garbage collected or container was cleared   | Yes        |
+| Transient      | Always returns a new instance                                                                                                                      | No         |
+
+> For scoped services install the extension Aeolin.reInject.Scopes
+> Scopes automatically keep track of all disposable instance created during the scope, clearing only them
+> Singletons are only disposed if they were added to the scope itself
 
 ## Overview over EventInjectAttribute
 With event injection events can be subscribed via DependencyInjection. For that an eventsource with an unique name has to be registered  by calling `IDependencyContainer.AddEvenInjector(setup => setup.RegisterEventSource())`. 
