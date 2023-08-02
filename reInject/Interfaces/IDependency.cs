@@ -7,7 +7,7 @@ namespace ReInject.Interfaces
   /// <summary>
   /// interface to represent single dependency strategies
   /// </summary>
-  public interface IDependencyType
+  public interface IDependency
   {
     /// <summary>
     /// The type of the dependency
@@ -15,20 +15,11 @@ namespace ReInject.Interfaces
     Type Type { get; }
 
     /// <summary>
-    /// Optional interface type to identify this depdency
-    /// </summary>
-    Type InterfaceType { get; }
-
-    /// <summary>
     /// Gets and instance of this dependency
     /// </summary>
     object Instance { get; }
 
-    /// <summary>
-    /// The caching strategy for this dependency
-    /// </summary>
-    DependencyStrategy Strategy { get; }
-
+    public bool IsSingleton { get; }
     /// <summary>
     /// Clear cached values
     /// </summary>

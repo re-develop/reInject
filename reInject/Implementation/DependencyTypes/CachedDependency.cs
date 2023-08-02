@@ -8,11 +8,11 @@ namespace ReInject.Implementation.DependencyTypes
   /// <summary>
   /// internal implementation of the cached dependency strategy
   /// </summary>
-  internal class CachedInstanceDependency : DependencyBase
+  internal class CachedDependency<T> : DependencyBase<T>
   {
     private WeakReference<object> _reference;
 
-    public CachedInstanceDependency( IDependencyContainer container, Type type, Type interfaceType = null, string name = null ) : base( container, DependencyStrategy.CachedInstance, type, interfaceType, name )
+    public CachedDependency( IDependencyContainer container, Func<T> factory, Type type, string name = null ) : base( container, factory, type, name )
     {
     }
 

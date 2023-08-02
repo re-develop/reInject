@@ -9,7 +9,7 @@ using ReInject.Utils;
 using Xunit;
 using ReInject;
 
-namespace reInjectTests
+namespace ReInjectTests
 {
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
   public class TestInjectorAttribute : Attribute

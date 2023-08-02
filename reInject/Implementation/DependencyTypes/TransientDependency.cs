@@ -8,11 +8,10 @@ namespace ReInject.Implementation.DependencyTypes
   /// <summary>
   /// Implementation of the NewInstance dependency strategy
   /// </summary>
-  internal class NewInstanceDependency : DependencyBase
+  internal class TransientDependency<T> : DependencyBase<T>
   {
-    public NewInstanceDependency(IDependencyContainer container, Type type, Type interfaceType = null, string name = null) : base(container, DependencyStrategy.NewInstance, type, interfaceType, name )
+    public TransientDependency(IDependencyContainer container, Func<T> factory, Type type, string name = null) : base(container, factory, type,  name )
     {
-
     }
 
     public override object Instance => createInstance();

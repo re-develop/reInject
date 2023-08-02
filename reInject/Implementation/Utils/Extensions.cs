@@ -25,5 +25,15 @@ namespace ReInject.Implementation.Utils
 
       return info.ReturnType == other.ReturnType && selfParams.Length == otherParams.Length && Enumerable.Range(0, selfParams.Length).Any(x => selfParams[x].ParameterType == otherParams[x].ParameterType && selfParams[x].IsOut == otherParams[x].IsOut);
     }
+
+    public static int RemoveAll<T>(this IList<T> items, Func<T, bool> predicate, Action<T> removeAction = null)
+    {
+      var toRemove = items.Where(predicate).ToList();
+      if (removeAction != null)
+        toRemove.ForEach(removeAction);
+
+      toRemove.ForEach(x => items.Remove(x));
+      return toRemove.Count;
+    }
   }
 }

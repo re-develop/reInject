@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using ReInject.Implementation.Core;
 using ReInject.Implementation.DependencyTypes;
@@ -12,329 +14,358 @@ using ReInject.Interfaces;
 namespace ReInject.Implementation
 {
 
-  /// <summary>
-  /// default shipped implementation of IDependencyContainer
-  /// </summary>
-  internal class DependencyContainer : IDependencyContainer
-  {
-    IDependencyContainer Parent { get; init; }
+	/// <summary>
+	/// default shipped implementation of IDependencyContainer
+	/// </summary>
+	internal class DependencyContainer : IDependencyContainer
+	{
+		IDependencyContainer Parent { get; init; }
 
-    /// <summary>
-    /// Constructs and DependencyContainer with the given name
-    /// </summary>
-    /// <param name="name">The name of this conainer</param>
-    /// <param name="parent">Parent to fallback on type search</param>
-    public DependencyContainer(string name, IDependencyContainer parent = null)
-    {
-      this.Name = name;
-    }
+		/// <summary>
+		/// Constructs and DependencyContainer with the given name
+		/// </summary>
+		/// <param name="name">The name of this conainer</param>
+		/// <param name="parent">Parent to fallback on type search</param>
+		public DependencyContainer(string name, IDependencyContainer parent = null)
+		{
+			this.Name = name;
+		}
 
-    // internal dictionary to keep track of registered dependencies
-    private Dictionary<(Type, string), IDependencyType> _typeCache = new Dictionary<(Type, string), IDependencyType>();
-    private List<IPostInjector> _postInjectors = new List<IPostInjector>();
+		// internal dictionary to keep track of registered dependencies
+		private Dictionary<(Type, string), IDependency> _typeCache = new Dictionary<(Type, string), IDependency>();
+		private List<IPostInjector> _postInjectors = new List<IPostInjector>();
 
-    /// <summary>
-    /// Gets the name of the current dependency container
-    /// </summary>
-    public string Name { get; private set; }
+		/// <summary>
+		/// Gets the name of the current dependency container
+		/// </summary>
+		public string Name { get; private set; }
 
-    public IEnumerable<(T instance, string name)> GetAllKnownInstances<T>(bool searchParents = true)
-    {
-      foreach (var instance in _typeCache)
-      {
-        if (instance.Key.Item1.IsAssignableTo(typeof(T)))
-          yield return ((T)instance.Value.Instance, instance.Key.Item2);
-      }
+		public IEnumerable<(T instance, string name)> GetAllKnownInstances<T>(bool searchParents = true)
+		{
+			foreach (var instance in _typeCache)
+			{
+				if (instance.Key.Item1.IsAssignableTo(typeof(T)))
+					yield return ((T)instance.Value.Instance, instance.Key.Item2);
+			}
 
-      if (searchParents && Parent != null)
-        foreach (var instance in Parent.GetAllKnownInstances<T>(searchParents))
-          yield return instance;
-    }
-
-    /// <summary>
-    /// Check if a given type is a registered dependency
-    /// </summary>
-    /// <typeparam name="T">The type of the depedency to search for</typeparam>
-    /// <param name="name">Optional name to register multiple depedencies of the same type, default is null</param>
-    /// <returns>True if a depdendency of the given type and name could be found, otherwise false</returns>
-    public bool IsKnownType<T>(string name = null)
-    {
-      return IsKnownType(typeof(T), name) || (Parent?.IsKnownType<T>(name) ?? false);
-    }
+			if (searchParents && Parent != null)
+				foreach (var instance in Parent.GetAllKnownInstances<T>(searchParents))
+					yield return instance;
+		}
 
 
-    /// <summary>
-    /// Check if a given type is a registered dependency
-    /// </summary>
-    /// <param name="type">The type of the depedency to search for</param>
-    /// <param name="name">Optional name to register multiple depedencies of the same type, default is null</param>
-    /// <returns>True if a depdendency of the given type and name could be found, otherwise false</returns>
-    public bool IsKnownType(Type type, string name = null)
-    {
-      if (type == null)
-        return false;
+		protected void CheckFactoryNullAndInterface<T>(Func<T> factory)
+		{
+			var type = typeof(T);
+			if ((type.IsInterface || type.IsInterface) && factory == null)
+				throw new ArgumentException($"If a factory isn't given the type must be instantiable");
+		}
 
-      return _typeCache.ContainsKey((type, name)) || (Parent?.IsKnownType(type, name) ?? false);
-    }
+		protected T CreateInstanceInternal<T>()
+		{
+			try
+			{
+				return (T)TypeInjectionMetadataCache.GetMetadataCache(typeof(T)).CreateInstance(this);
+			}
+			catch (Exception ex)
+			{
+				throw new AggregateException($"couldn't create instance internally", ex);
+			}
+		}
 
-    /// <summary>
-    /// Registers an object, it's class and it's interface as dependency
-    /// </summary>
-    /// <typeparam name="I">The interface type</typeparam>
-    /// <typeparam name="T">The depdendency type</typeparam>
-    /// <param name="strategy">The caching strategy</param>
-    /// <param name="overwrite">If any already existing depdendencie's with this type and name should be overwritten</param>
-    /// <param name="instance">An instance of the class for initialisation or atomic instances</param>
-    /// <param name="name">An optional name to register multiple dependencies of the same type</param>
-    /// <returns>This container for builder pattern</returns>
-    public IDependencyContainer Register<I, T>(DependencyStrategy strategy, bool overwrite = false, object instance = null, string name = null)
-    {
-      register(typeof(T), typeof(I), strategy, overwrite, instance, name);
-      return this;
-    }
+		public IDependencyContainer Add(IDependency dependency, bool overwrite = false, string name = null)
+		{
+			var isKnown = IsKnownType(dependency.Type, name);
+			if (isKnown && overwrite == false)
+				return this;
 
-    /// <summary>
-    /// Registers an object and/or it's class 
-    /// </summary>
-    /// <typeparam name="T">The depdendency type</typeparam>
-    /// <param name="strategy">The caching strategy</param>
-    /// <param name="overwrite">If any already existing depdendencie's with this type and name should be overwritten</param>
-    /// <param name="instance">An instance of the class for initialisation or atomic instances</param>
-    /// <param name="name">An optional name to register multiple dependencies of the same type</param>
-    /// <returns>This container for builder pattern</returns>
-    public IDependencyContainer Register<T>(DependencyStrategy strategy, bool overwrite = false, object instance = null, string name = null)
-    {
-      register(typeof(T), null, strategy, overwrite, instance, name);
-      return this;
-    }
+			var key = (dependency.Type, name);
+			if (isKnown)
+			{
+				if (_typeCache.TryGetValue(key, out var type))
+				{
+					type.Clear();
+					if (type is IDisposable disposable)
+					{
+						disposable.Dispose();
+					}
+				}
+			}
 
-    /// <summary>
-    /// Registers an object, it's class and it's interface as dependency
-    /// </summary>
-    /// <param name="type">The depdendency type</typeparam>
-    /// <param name="strategy">The caching strategy</param>
-    /// <param name="overwrite">If any already existing depdendencie's with this type and name should be overwritten</param>
-    /// <param name="instance">An instance of the class for initialisation or atomic instances</param>
-    /// <param name="name">An optional name to register multiple dependencies of the same type</param>
-    /// <returns>This container for builder pattern</returns>
-    public IDependencyContainer Register(Type type, DependencyStrategy strategy = DependencyStrategy.SingleInstance, bool overwrite = false, object instance = null, string name = null)
-    {
-      register(type, null, strategy, overwrite, instance, name);
-      return this;
-    }
+			_typeCache.Add(key, dependency);
+			return this;
+		}
 
-    /// <summary>
-    /// Registers an object, it's class and it's interface as dependency
-    /// </summary>
-    /// <param name="interfaceType">The interface type</typeparam>
-    /// <param name="type">The depdendency type</typeparam>
-    /// <param name="strategy">The caching strategy</param>
-    /// <param name="overwrite">If any already existing depdendencie's with this type and name should be overwritten</param>
-    /// <param name="instance">An instance of the class for initialisation or atomic instances</param>
-    /// <param name="name">An optional name to register multiple dependencies of the same type</param>
-    /// <returns>This container for builder pattern</returns>
-    public IDependencyContainer Register(Type type, Type interfaceType, DependencyStrategy strategy = DependencyStrategy.SingleInstance, bool overwrite = false, object instance = null, string name = null)
-    {
-      register(type, interfaceType, strategy, overwrite, instance, name);
-      return this;
-    }
+		public IDependencyContainer AddTransient<TInterface, TType>(Func<TType> factory = null, bool overwrite = false, string name = null) where TType : TInterface
+		{
+			factory ??= () => CreateInstanceInternal<TType>();
+			var dependency = new TransientDependency<TType>(this, factory, typeof(TInterface), name);
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
 
-    private void register(Type type, Type interfaceType, DependencyStrategy strategy, bool overwrite, object instance, string name)
-    {
-      if (strategy == DependencyStrategy.AtomicInstance && instance == null)
-        throw new ArgumentException("AtomicDependencies need an instance provided");
+		public IDependencyContainer AddCached<TInterface, TType>(Func<TType> factory = null, bool overwrite = false, string name = null) where TType : TInterface
+		{
+			factory ??= () => CreateInstanceInternal<TType>();
+			var dependency = new CachedDependency<TType>(this, factory, typeof(TInterface), name);
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
 
-      if ((IsKnownType(type, name) || IsKnownType(interfaceType, name)) && overwrite == false)
-        return;
+		public IDependencyContainer AddLazySingleton<TInterface, TType>(Func<TType> factory = null, bool overwrite = false, string name = null) where TType : TInterface
+		{
+			factory ??= () => CreateInstanceInternal<TType>();
+			var dependency = new LazySingletonDependency<TType>(this, factory, typeof(TInterface), name);
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
 
-      IDependencyType dependency = null;
-      switch (strategy)
-      {
-        case DependencyStrategy.AtomicInstance:
-          dependency = new AtomicInstanceDependency(this, instance, type, interfaceType, name);
-          break;
+		public IDependencyContainer AddSingleton<TInterface, TType>(bool overwrite = false, string name = null) where TType : TInterface
+		{
+			try
+			{
+				var value = CreateInstanceInternal<TType>();
+				this.AddSingleton<TInterface>(value, overwrite, name);
+				return this;
+			}
+			catch (Exception ex)
+			{
+				throw new AggregateException($"couldn't create instance of {typeof(TType).FullName}, make sure all service required to instantiate this type are already registered", ex);
+			}
+		}
 
-        case DependencyStrategy.CachedInstance:
-          dependency = new CachedInstanceDependency(this, type, interfaceType, name);
-          break;
+		public IDependencyContainer AddSingleton<T>(bool overwrite = false, string name = null)
+		{
+			try
+			{
+				var value = CreateInstanceInternal<T>();
+				this.AddSingleton(value, overwrite, name);
+				return this;
+			}
+			catch (Exception ex)
+			{
+				throw new AggregateException($"couldn't create instance of {typeof(T).FullName}, make sure all service required to instantiate this type are already registered", ex);
+			}
+		}
 
-        case DependencyStrategy.NewInstance:
-          dependency = new NewInstanceDependency(this, type, interfaceType, name);
-          break;
+		public IDependencyContainer AddSingleton<T>(T value, bool overwrite = false, string name = null)
+		{
+			var type = value.GetType();
+			var dependency = new SingletonDependency<T>(this, value, typeof(T), name);
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
 
-        case DependencyStrategy.SingleInstance:
-          dependency = new SingleInstanceDependency(this, type, interfaceType, name);
-          break;
+		public IDependencyContainer AddLazySingleton<T>(Func<T> factory = null, bool overwrite = false, string name = null)
+		{
+			CheckFactoryNullAndInterface(factory);
+			var dependency = new LazySingletonDependency<T>(this, factory, typeof(T), name);
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
 
-        default:
-          throw new ArgumentException("Invalid Strategy", nameof(strategy));
-      }
+		public IDependencyContainer AddTransient<T>(Func<T> factory = null, bool overwrite = false, string name = null)
+		{
+			CheckFactoryNullAndInterface(factory);
+			var dependency = new TransientDependency<T>(this, factory, typeof(T), name);
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
 
-      if (dependency != null)
-      {
-        _typeCache[(type, name)] = dependency;
-        if (interfaceType != null)
-          _typeCache[(interfaceType, name)] = dependency;
-      }
-    }
+		public IDependencyContainer AddCached<T>(Func<T> factory, bool overwrite = false, string name = null)
+		{
+			CheckFactoryNullAndInterface(factory);
+			var dependency = new CachedDependency<T>(this, factory, typeof(T), name);
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
 
-    /// <summary>
-    /// Returns an instance of the given type initialized with it's dependencies and offers an Action to configure the instanced object
-    /// </summary>
-    /// <typeparam name="T">The type of the instance</typeparam>
-    /// <param name="action">Nullable action to configure the instance</param>
-    /// <param name="name">Optional name to handle multiple dependencies of the same name, null is default</param>
-    /// <returns>An instance of the given type</returns>
-    public T GetInstance<T>(Action<T> onAccess = null, string name = null)
-    {
-      var inst = (T)GetInstance(typeof(T), name);
-      if (inst == null && Parent != null)
-        inst = Parent.GetInstance(onAccess, name);
-
-      if (onAccess != null)
-        onAccess(inst);
-
-      return inst;
-    }
-
-    /// <summary>
-    /// Returns an instance of the given type initialized with it's dependencies
-    /// </summary>
-    /// <param name="type">The type of the instance</param>
-    /// <param name="name">Optional name to handle multiple dependencies of the same name, null is default</param>
-    /// <returns>An instance of the given type</returns>
-    public object GetInstance(Type type, string name = null)
-    {
-      if (type == null)
-        return null;
-
-      if (IsKnownType(type, name))
-      {
-        return _typeCache[(type, name)].Instance;
-      }
-      else if (Parent != null && Parent.IsKnownType(type, name))
-      {
-        return Parent.GetInstance(type, name);
-      }
-      else if (type.IsClass && type.IsAbstract == false)
-      {
-        return TypeInjectionMetadataCache.GetMetadataCache(type).CreateInstance(this);
-      }
-
-      return null;
-    }
-
-    /// <summary>
-    /// Returns an instance of the given type initialized with it's dependencies
-    /// </summary>
-    /// <param name="type">The type of the instance</param>
-    /// <param name="name">Optional name to handle multiple dependencies of the same name, null is default</param>
-    /// <returns>An instance of the given type</returns>
-    public object GetService(Type type, string name = null)
-    {
-      return GetInstance(type, name);
-    }
-
-    /// <summary>
-    /// Returns an instance of the given type initialized with it's dependencies and offers an Action to configure the instanced object
-    /// </summary>
-    /// <typeparam name="T">The type of the instance</typeparam>
-    /// <param name="name">Optional name to handle multiple dependencies of the same name, null is default</param>
-    /// <returns>An instance of the given type</returns>
-    public object GetService(Type type)
-    {
-      return GetInstance(type, null);
-    }
-
-    /// <summary>
-    /// Clear all cached object except registered dependencies of type AtomicInstance
-    /// </summary>
-    public void Clear()
-    {
-      _typeCache.Values.ToList().ForEach(x => x.Clear());
-    }
+		/// <summary>
+		/// Check if a given type is a registered dependency
+		/// </summary>
+		/// <typeparam name="T">The type of the depedency to search for</typeparam>
+		/// <param name="name">Optional name to register multiple depedencies of the same type, default is null</param>
+		/// <returns>True if a depdendency of the given type and name could be found, otherwise false</returns>
+		public bool IsKnownType<T>(string name = null)
+		{
+			return IsKnownType(typeof(T), name) || (Parent?.IsKnownType<T>(name) ?? false);
+		}
 
 
-    public void PostInject(object obj)
-    {
-      if (obj == null)
-        return;
+		/// <summary>
+		/// Check if a given type is a registered dependency
+		/// </summary>
+		/// <param name="type">The type of the depedency to search for</param>
+		/// <param name="name">Optional name to register multiple depedencies of the same type, default is null</param>
+		/// <returns>True if a depdendency of the given type and name could be found, otherwise false</returns>
+		public bool IsKnownType(Type type, string name = null)
+		{
+			if (type == null)
+				return false;
 
-      var meta = TypeInjectionMetadataCache.GetMetadataCache(obj.GetType());
-      if (meta != null)
-        meta.PostInject(this, obj);
-    }
-
-
-    private IPostInjector getPostInjector(Type type, string name)
-    {
-      return _postInjectors.FirstOrDefault(x => x.GetType().IsAssignableTo(type) && (name == null || x.Name == name));
-    }
-
-    public void UnregisterPostInjector<T>(string name = null) where T : IPostInjector
-    {
-      var inst = getPostInjector(typeof(T), name);
-      if (inst != null)
-      {
-        inst.Dispose();
-        _postInjectors.Remove(inst);
-      }
-    }
-
-    public void UnregisterPostInjector(IPostInjector injector)
-    {
-      injector.Dispose();
-      _postInjectors.Remove(injector);
-    }
-
-    public bool RegisterPostInjector(IPostInjector injector, bool overwrite = false)
-    {
-      var existing = getPostInjector(injector.GetType(), injector.Name);
-      if (existing != null)
-      {
-        if (overwrite == false)
-          return false;
-
-        existing.Dispose();
-        _postInjectors.Remove(existing);
-      }
-
-      _postInjectors.Add(injector);
-      return true;
-    }
-
-    public T RegisterPostInjector<T>(Action<T> configure = null, bool overwrite = false) where T : IPostInjector
-    {
-      var inst = GetInstance(configure);
-      var success = RegisterPostInjector(inst, overwrite);
-      return success ? inst : default(T);
-    }
-
-    IEnumerable<IPostInjector> IPostInjectProvider.GetPostInjecors()
-    {
-      return _postInjectors;
-    }
-
-    public DependencyStrategy? GetDependencyStrategy(Type type, string name = null)
-    {
-      if (_typeCache.TryGetValue((type, name), out var dependency))
-        return dependency.Strategy;
-
-      return null;
-    }
+			return _typeCache.ContainsKey((type, name)) || (Parent?.IsKnownType(type, name) ?? false);
+		}
 
 
-    public void SetPostInjectionsEnabled(object instance, bool enabled, string name = null)
-    {
-      SetPostInjectionsEnabled<IPostInjector>(instance, enabled, name);
-    }
+		/// <summary>
+		/// Returns an instance of the given type initialized with it's dependencies and offers an Action to configure the instanced object
+		/// </summary>
+		/// <typeparam name="T">The type of the instance</typeparam>
+		/// <param name="action">Nullable action to configure the instance</param>
+		/// <param name="name">Optional name to handle multiple dependencies of the same name, null is default</param>
+		/// <returns>An instance of the given type</returns>
+		public T GetInstance<T>(Action<T> onAccess = null, string name = null)
+		{
+			var inst = (T)GetInstance(typeof(T), name);
+			if (inst == null && Parent != null)
+				inst = Parent.GetInstance(onAccess, name);
 
-    public void SetPostInjectionsEnabled<T>(object instance, bool enabled, string name = null)
-    {
-      _postInjectors.Where(x => x.GetType().IsAssignableTo(typeof(T)) && (name == null || x.Name == name)).ToList().ForEach(x =>
-      {
-        x.SetInjectionEnabled(instance, enabled);
-      });
-    }
-  }
+			if (onAccess != null)
+				onAccess(inst);
+
+			return inst;
+		}
+
+		/// <summary>
+		/// Returns an instance of the given type initialized with it's dependencies
+		/// </summary>
+		/// <param name="type">The type of the instance</param>
+		/// <param name="name">Optional name to handle multiple dependencies of the same name, null is default</param>
+		/// <returns>An instance of the given type</returns>
+		public object GetInstance(Type type, string name = null)
+		{
+			if (type == null)
+				return null;
+
+			if (IsKnownType(type, name))
+			{
+				return _typeCache[(type, name)].Instance;
+			}
+			else if (Parent != null && Parent.IsKnownType(type, name))
+			{
+				return Parent.GetInstance(type, name);
+			}
+			else if (type.IsClass && type.IsAbstract == false)
+			{
+				return TypeInjectionMetadataCache.GetMetadataCache(type).CreateInstance(this);
+			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Returns an instance of the given type initialized with it's dependencies
+		/// </summary>
+		/// <param name="type">The type of the instance</param>
+		/// <param name="name">Optional name to handle multiple dependencies of the same name, null is default</param>
+		/// <returns>An instance of the given type</returns>
+		public object GetService(Type type, string name = null)
+		{
+			return GetInstance(type, name);
+		}
+
+		/// <summary>
+		/// Returns an instance of the given type initialized with it's dependencies and offers an Action to configure the instanced object
+		/// </summary>
+		/// <typeparam name="T">The type of the instance</typeparam>
+		/// <param name="name">Optional name to handle multiple dependencies of the same name, null is default</param>
+		/// <returns>An instance of the given type</returns>
+		public object GetService(Type type)
+		{
+			return GetInstance(type, null);
+		}
+
+		/// <summary>
+		/// Clear all cached object except registered dependencies of type AtomicInstance
+		/// </summary>
+		public void Clear()
+		{
+			_typeCache.Values.ToList().ForEach(x => x.Clear());
+		}
+
+
+		public void PostInject(object obj)
+		{
+			if (obj == null)
+				return;
+
+			var meta = TypeInjectionMetadataCache.GetMetadataCache(obj.GetType());
+			if (meta != null)
+				meta.PostInject(this, obj);
+		}
+
+
+		private IPostInjector getPostInjector(Type type, string name)
+		{
+			return _postInjectors.FirstOrDefault(x => x.GetType().IsAssignableTo(type) && (name == null || x.Name == name));
+		}
+
+		public void UnregisterPostInjector<T>(string name = null) where T : IPostInjector
+		{
+			var inst = getPostInjector(typeof(T), name);
+			if (inst != null)
+			{
+				inst.Dispose();
+				_postInjectors.Remove(inst);
+			}
+		}
+
+		public void UnregisterPostInjector(IPostInjector injector)
+		{
+			injector.Dispose();
+			_postInjectors.Remove(injector);
+		}
+
+		public bool RegisterPostInjector(IPostInjector injector, bool overwrite = false)
+		{
+			var existing = getPostInjector(injector.GetType(), injector.Name);
+			if (existing != null)
+			{
+				if (overwrite == false)
+					return false;
+
+				existing.Dispose();
+				_postInjectors.Remove(existing);
+			}
+
+			_postInjectors.Add(injector);
+			return true;
+		}
+
+		public T RegisterPostInjector<T>(Action<T> configure = null, bool overwrite = false) where T : IPostInjector
+		{
+			var inst = GetInstance(configure);
+			var success = RegisterPostInjector(inst, overwrite);
+			return success ? inst : default(T);
+		}
+
+		IEnumerable<IPostInjector> IPostInjectProvider.GetPostInjecors()
+		{
+			return _postInjectors;
+		}
+
+		public void SetPostInjectionsEnabled(object instance, bool enabled, string name = null)
+		{
+			SetPostInjectionsEnabled<IPostInjector>(instance, enabled, name);
+		}
+
+		public void SetPostInjectionsEnabled<T>(object instance, bool enabled, string name = null)
+		{
+			_postInjectors.Where(x => x.GetType().IsAssignableTo(typeof(T)) && (name == null || x.Name == name)).ToList().ForEach(x =>
+			{
+				x.SetInjectionEnabled(instance, enabled);
+			});
+		}
+
+		public IDependency GetDependency<T>(string name = null) => GetDependency(typeof(T), name);
+
+		public IDependency GetDependency(Type type, string name = null)
+		{
+			var key = (type, name);
+			if (_typeCache.TryGetValue(key, out var dependency))
+				return dependency;
+
+			return null;
+		}
+	}
 }

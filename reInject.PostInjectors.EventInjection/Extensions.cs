@@ -13,7 +13,7 @@ namespace ReInject.PostInjectors.EventInjection
     {
       var injector = new EventInjector(name, priority);
       setup?.Invoke(injector);
-      container.Register<IEventProvider>(DependencyStrategy.AtomicInstance, true, injector, name);
+      container.AddSingleton<IEventProvider>(injector, true, name);
       container.RegisterPostInjector(injector, overwrite);
       return container;
     }

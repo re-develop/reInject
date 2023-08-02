@@ -8,10 +8,10 @@ namespace ReInject.Implementation.DependencyTypes
   /// <summary>
   /// Implementation of DependencyStrategy single instance
   /// </summary>
-  internal class SingleInstanceDependency : DependencyBase
+  internal class LazySingletonDependency<T> : DependencyBase<T>
   {
     private object _instance;
-    public SingleInstanceDependency(IDependencyContainer container, Type type, Type interfaceType = null, string name = null) : base(container, DependencyStrategy.SingleInstance, type, interfaceType, name)
+    public LazySingletonDependency(IDependencyContainer container, Func<T> factory, Type type,  string name = null) : base(container, factory, type, name)
     {
     }
 

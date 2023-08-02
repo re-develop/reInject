@@ -47,6 +47,8 @@ namespace ReInject.Implementation.Core
       return _cache[type];
     }
 
+    public static TypeInjectionMetadataCache GetMetadataCache<T>() => GetMetadataCache(typeof(T));
+
     // keeps track of all injection relevant class members
     private Dictionary<MemberInfo, Type> _members = new Dictionary<MemberInfo, Type>();
 
@@ -95,7 +97,7 @@ namespace ReInject.Implementation.Core
             return x.RawDefaultValue;
           }
 
-          throw new Exception($"Couldn't resolve type for {x.ParameterType.Name} to call ctor of {CachedType.Name}");
+          throw new ArgumentException($"Couldn't resolve type for {x.ParameterType.Name} to call ctor of {CachedType.Name}");
         }).ToArray();
         inst = ctor.Invoke(parameters);
       }
