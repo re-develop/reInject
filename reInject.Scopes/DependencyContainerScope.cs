@@ -194,5 +194,50 @@ namespace reInject.Scopes
 		public IDependency GetDependency<T>(string name = null) => _container.GetDependency<T>(name);
 
 		public IDependency GetDependency(Type type, string name = null) => _container.GetDependency(type, name);
+
+		public IDependencyContainer AddCached(Type type, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			_container.AddCached(type, factory, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddLazySingleton(Type type, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			_container.AddLazySingleton(type, factory, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddSingleton(Type type, object value, bool overwrite = false, string name = null)
+		{
+			_container.AddSingleton(type, value, overwrite, name);
+			var dependency = _container.GetDependency(type, name);
+			if (dependency is IDisposable disposable)
+				_disposables.Add(disposable);
+			return this;
+		}
+
+		public IDependencyContainer AddTransient(Type type, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			_container.AddTransient(type, factory, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddCached(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			_container.AddCached(interfaceType, actualType, factory, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddLazySingleton(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			_container.AddLazySingleton(interfaceType, actualType, factory, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddTransient(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			_container.AddTransient(interfaceType, actualType, factory, overwrite, name);
+			return this;
+		}
 	}
 }
