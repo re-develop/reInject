@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReInject", "reInject\ReInject.csproj", "{8D1ED363-5F3A-457B-80C9-CB5A9EF09E64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReInject", "ReInject\ReInject.csproj", "{8D1ED363-5F3A-457B-80C9-CB5A9EF09E64}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReInjectTests", "reInjectTests\ReInjectTests.csproj", "{E6ABFC1B-96AE-45C3-8A45-653F9B3261B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReInject.Tests", "ReInject.Tests\ReInject.Tests.csproj", "{E6ABFC1B-96AE-45C3-8A45-653F9B3261B9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReInject.Scopes", "reInject.Scopes\ReInject.Scopes.csproj", "{667169A8-D006-4150-8EC3-B7EB329F4E69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReInject.Scopes", "ReInject.Scopes\ReInject.Scopes.csproj", "{667169A8-D006-4150-8EC3-B7EB329F4E69}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReInject.PostInjectors.BackgroundWorker", "reInject.PostInjectors.BackgroundWorker\ReInject.PostInjectors.BackgroundWorker.csproj", "{440CF397-5CB5-4CE2-9495-341D75AC96EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReInject.PostInjectors.BackgroundWorker", "ReInject.PostInjectors.BackgroundWorker\ReInject.PostInjectors.BackgroundWorker.csproj", "{440CF397-5CB5-4CE2-9495-341D75AC96EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReInject.PostInjectors.EventInjection", "reInject.PostInjectors.EventInjection\ReInject.PostInjectors.EventInjection.csproj", "{6FC4F746-C8DB-41CE-95F9-456A27F70812}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReInject.PostInjectors.EventInjection", "ReInject.PostInjectors.EventInjection\ReInject.PostInjectors.EventInjection.csproj", "{6FC4F746-C8DB-41CE-95F9-456A27F70812}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

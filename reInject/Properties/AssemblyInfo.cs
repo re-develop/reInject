@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-[assembly: InternalsVisibleTo("reInjectTests")]
+[assembly: InternalsVisibleTo("ReInject.Tests")]
 namespace ReInject.Properties
 {
   public class AssemblyInfo
