@@ -17,6 +17,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
+    - name: Debug Worflow
+      run: cd /home/runner/work/reInject/reInject/ & ls -la
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
