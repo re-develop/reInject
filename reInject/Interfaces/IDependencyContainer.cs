@@ -34,7 +34,7 @@ namespace ReInject.Interfaces
     public IEnumerable<(T instance, string name)> GetAllKnownInstances<T>(bool searchParents = true);
 
 		IDependencyContainer Add(IDependency dependency, bool overwrite = false, string name = null);
-		IDependencyContainer AddCached<T>(Func<T> factory, bool overwrite = false, string name = null);
+		IDependencyContainer AddCached<T>(Func<T> factory = null, bool overwrite = false, string name = null);
 		IDependencyContainer AddCached<TInterface, TType>(Func<TType> factory = null, bool overwrite = false, string name = null) where TType : TInterface;
 		IDependencyContainer AddLazySingleton<T>(Func<T> factory = null, bool overwrite = false, string name = null);
 		IDependencyContainer AddLazySingleton<TInterface, TType>(Func<TType> factory = null, bool overwrite = false, string name = null) where TType : TInterface;
@@ -44,7 +44,16 @@ namespace ReInject.Interfaces
 		IDependencyContainer AddTransient<T>(Func<T> factory = null, bool overwrite = false, string name = null);
 		IDependencyContainer AddTransient<TInterface, TType>(Func<TType> factory = null, bool overwrite = false, string name = null) where TType : TInterface;
 
-    IDependency GetDependency<T>(string name = null);
+		IDependencyContainer AddCached(Type type, Func<object> factory = null, bool overwrite = false, string name = null);
+		IDependencyContainer AddLazySingleton(Type type, Func<object> factory = null, bool overwrite = false, string name = null);
+		IDependencyContainer AddSingleton(Type type, object value, bool overwrite = false, string name = null);
+		IDependencyContainer AddTransient(Type type, Func<object> factory = null, bool overwrite = false, string name = null);
+		
+    IDependencyContainer AddCached(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null);
+		IDependencyContainer AddLazySingleton(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null);
+		IDependencyContainer AddTransient(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null);
+
+		IDependency GetDependency<T>(string name = null);
     IDependency GetDependency(Type type, string name = null);
 		/// <summary>
 		/// Inject dependencies in an already existing object using attributes

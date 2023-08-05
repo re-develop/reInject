@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -32,13 +33,31 @@ namespace ReInject.Utils
     }
 
     /// <summary>
-    /// Find all members of the type and types it inherits from
+    /// Creates a lambda returning a given type encapsulating a different type
     /// </summary>
-    /// <param name="type">The type to get members from</typeparam>
-    /// <param name="filter">A whitelist filter to only allow certain membertypes, default is All</param>
-    /// <param name="flags">The bindingflags to use when searching for members, default is Public | NonPublic | Instance</param>
-    /// <returns>An array of all members matching the given criteria</returns>
-    public static MemberInfo[] GetAllMembers(Type type, MemberTypes filter = MemberTypes.All, BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+    /// <param name="type"></param>
+    /// <param name="factory"></param>
+    /// <returns></returns>
+		public static object CastFactoryType(Type type, Func<object> factory)
+		{
+      if (factory == null)
+        return null;
+
+			var call = Expression.Call(Expression.Constant(factory), factory.GetType().GetMethod("Invoke"));
+			var cast = Expression.TypeAs(call, type);
+      var lambdaType = typeof(Func<>).MakeGenericType(type);
+			var lambda = Expression.Lambda(lambdaType, cast).Compile();
+			return lambda;
+		}
+
+		/// <summary>
+		/// Find all members of the type and types it inherits from
+		/// </summary>
+		/// <param name="type">The type to get members from</typeparam>
+		/// <param name="filter">A whitelist filter to only allow certain membertypes, default is All</param>
+		/// <param name="flags">The bindingflags to use when searching for members, default is Public | NonPublic | Instance</param>
+		/// <returns>An array of all members matching the given criteria</returns>
+		public static MemberInfo[] GetAllMembers(Type type, MemberTypes filter = MemberTypes.All, BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
     {
       List<MemberInfo> infos = new List<MemberInfo>();
       do

@@ -10,6 +10,7 @@ using System.Text;
 using ReInject.Implementation.Core;
 using ReInject.Implementation.DependencyTypes;
 using ReInject.Interfaces;
+using ReInject.Utils;
 
 namespace ReInject.Implementation
 {
@@ -172,13 +173,79 @@ namespace ReInject.Implementation
 			return this;
 		}
 
-		public IDependencyContainer AddCached<T>(Func<T> factory, bool overwrite = false, string name = null)
+		public IDependencyContainer AddCached<T>(Func<T> factory = null, bool overwrite = false, string name = null)
 		{
 			CheckFactoryNullAndInterface(factory);
 			var dependency = new CachedDependency<T>(this, factory, typeof(T), name);
 			this.Add(dependency, overwrite, name);
 			return this;
 		}
+
+		public IDependencyContainer AddTransient(Type type, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			var dependencyType = typeof(TransientDependency<>).MakeGenericType(type);
+			var factoryCasted = ReflectionHelper.CastFactoryType(type, factory);
+			var dependency = (IDependency)dependencyType.GetConstructors().First().Invoke(new object[] { this, factoryCasted, type, name });
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddCached(Type type, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			var dependencyType = typeof(CachedDependency<>).MakeGenericType(type);
+			var factoryCasted = ReflectionHelper.CastFactoryType(type, factory);
+			var dependency = (IDependency)dependencyType.GetConstructors().First().Invoke(new object[] { this, factoryCasted, type, name });
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddSingleton(Type type, object value, bool overwrite = false, string name = null)
+		{
+			if (value == null || value.GetType().IsAssignableTo(type) == false)
+				throw new ArgumentException("Value can't be null and must be assignable to type", nameof(value));
+
+			var dependencyType = typeof(SingletonDependency<>).MakeGenericType(type);
+			var dependency = (IDependency)dependencyType.GetConstructors().First().Invoke(new object[] { this, value, type, name });
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddLazySingleton(Type type, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			var dependencyType = typeof(LazySingletonDependency<>).MakeGenericType(type);
+			var factoryCasted = ReflectionHelper.CastFactoryType(type, factory);
+			var dependency = (IDependency)dependencyType.GetConstructors().First().Invoke(new object[] { this, factoryCasted, type, name });
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddTransient(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			var dependencyType = typeof(TransientDependency<>).MakeGenericType(actualType);
+			var factoryCasted = ReflectionHelper.CastFactoryType(actualType, factory);
+			var dependency = (IDependency)dependencyType.GetConstructors().First().Invoke(new object[] { this, factoryCasted, interfaceType, name });
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddCached(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			var dependencyType = typeof(CachedDependency<>).MakeGenericType(actualType);
+			var factoryCasted = ReflectionHelper.CastFactoryType(actualType, factory);
+			var dependency = (IDependency)dependencyType.GetConstructors().First().Invoke(new object[] { this, factoryCasted, interfaceType, name });
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
+
+		public IDependencyContainer AddLazySingleton(Type interfaceType, Type actualType, Func<object> factory = null, bool overwrite = false, string name = null)
+		{
+			var dependencyType = typeof(LazySingletonDependency<>).MakeGenericType(actualType);
+			var factoryCasted = ReflectionHelper.CastFactoryType(actualType, factory);
+			var dependency = (IDependency)dependencyType.GetConstructors().First().Invoke(new object[] { this, factoryCasted, interfaceType, name });
+			this.Add(dependency, overwrite, name);
+			return this;
+		}
+
 
 		/// <summary>
 		/// Check if a given type is a registered dependency

@@ -48,7 +48,42 @@ namespace ReInjectTests
       public int Property { get; } = 0;
     }
 
+
     [Fact]
+    public void ReInject_NonGenericAddTransiet_WorksWithDefaultFactory()
+    {
+      // Arrange
+      var container = Injector.GetContainer(Guid.NewGuid().ToString());
+      container.AddTransient(typeof(IHelloService), typeof(HelloService));
+
+      // Act
+      var instance = container.GetInstance<IHelloService>();
+
+      // Assert
+      Assert.NotNull(instance);
+      Assert.Equal("Hello World", instance.SayHello());
+    }
+
+
+
+		[Fact]
+		public void ReInject_NonGenericAddTransiet_WorksWithGivenFactory()
+		{
+			// Arrange
+			var container = Injector.GetContainer(Guid.NewGuid().ToString());
+			container.AddTransient(typeof(IHelloService), typeof(HelloService), () => new HelloService());
+
+			// Act
+			var instance = container.GetInstance<IHelloService>();
+
+			// Assert
+			Assert.NotNull(instance);
+			Assert.Equal("Hello World", instance.SayHello());
+		}
+
+
+
+		[Fact]
     public void ReInject_TestReadonlyPropertyInjections_WorksIfDefaultGetOnlyProperty()
     {
       // Arrange
@@ -61,9 +96,38 @@ namespace ReInjectTests
 
       // Assert
       Assert.Equal(num, instance.Property);
-
+      
     }
 
+
+
+    [Fact]
+    public void ReflectionHelper_CastFactoryType_ReturnsNullIfFactoryIsNull()
+    {
+      // Arrange
+      var factory = new Func<object>(() => new HelloService());
+
+      // Act
+      var result = ReflectionHelper.CastFactoryType(typeof(IHelloService), null);
+
+      // Assert
+      Assert.Null(result);
+    }
+
+
+		[Fact]
+    public void ReflectionHelper_CastFactoryType_ProducesValidFactoryFacade()
+    {
+			// Arrange
+			var factory = new Func<object>(() => new HelloService());
+      
+      // Act
+      var result = ReflectionHelper.CastFactoryType(typeof(IHelloService), factory);
+
+			// Assert
+			Assert.Equal(typeof(Func<IHelloService>), result.GetType());
+      Assert.NotNull(((Func<IHelloService>)result)());
+		}
 
    
 
