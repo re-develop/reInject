@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\reInject\ReInject.csproj" />
+    <ProjectReference Include="..\ReInject\ReInject.csproj" />
   </ItemGroup>
 
 </Project>
