@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace reInject.PostInjectors.BackgroundWorker
+namespace ReInject.PostInjectors.BackgroundWorker
 {
 	public static class Extensions
 	{

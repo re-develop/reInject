@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace reInject.Scopes
+namespace ReInject.Scopes
 {
   public class DependencyContainerScopeFactory : IServiceScopeFactory
   {
