@@ -6,15 +6,15 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>di dependency injection dependencyinjection reInject</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
-    <AssemblyVersion>2.1.0</AssemblyVersion>
-    <FileVersion>2.1.0</FileVersion>
+    <AssemblyVersion>2.1.1</AssemblyVersion>
+    <FileVersion>2.1.1</FileVersion>
     <Company>reDevelop</Company>
     <Authors>Aeolin Ferjünnoz</Authors>
     <Product>reInject.Scopes</Product>
     <Description>IServiceScope and IServiceScopeFactory Implementation for reinject</Description>
     <Copyright>Aeolin Ferjünnoz</Copyright>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>2.1.0</Version>
+    <Version>2.1.1</Version>
     <PackageId>Aeolin.reInject.Scopes</PackageId>
   </PropertyGroup>
 

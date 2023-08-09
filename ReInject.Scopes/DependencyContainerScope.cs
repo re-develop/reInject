@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 
-namespace reInject.Scopes
+namespace ReInject.Scopes
 {
 	public class DependencyContainerScope : IDependencyContainer, IServiceScope
 	{
