@@ -57,7 +57,7 @@ container.Clear(); // clear all cached instances of registered classes except At
 |----------------|----------------------------------------------------------------------------------------------------------------------------------------------------|------------|
 | LazySingleton  | Singleton which gets created as soone as it's needed for the first time, gets cleared if clear is called on the container                          | Yes        |
 | Singleton      | Singleton which gets created when add is called if no instance is passed                                                                           | No         |
-| Cached         | Keeps a WeekReference to the laste constructed value, only creates new instance if week reference was garbage collected or container was cleared   | Yes        |
+| Cached         | Keeps a WeakReference to the laste constructed value, only creates new instance if week reference was garbage collected or container was cleared   | Yes        |
 | Transient      | Always returns a new instance                                                                                                                      | No         |
 
 > For scoped services install the extension Aeolin.reInject.Scopes
